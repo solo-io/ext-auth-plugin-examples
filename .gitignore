@@ -2,3 +2,4 @@
 vendor
 **.so
 _glooe
+mismatched_dependencies.json
