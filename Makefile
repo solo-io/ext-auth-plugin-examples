@@ -38,7 +38,7 @@ compare-deps: Gopkg.lock $(GLOOE_DIR)/Gopkg.lock
 #----------------------------------------------------------------------------------
 # Build plugins
 #----------------------------------------------------------------------------------
-EXAMPLES_DIR := examples
+EXAMPLES_DIR := plugins
 SOURCES := $(shell find . -name "*.go" | grep -v test)
 
 define get_glooe_var
@@ -47,7 +47,7 @@ endef
 
 .PHONY: build-plugins
 build-plugins: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache -t quay.io/solo-io/ext-auth-plugins:$(VERSION) \
+	docker build --no-cache -t quay.io/solo-io/ext-auth-plugin-examples:$(VERSION) \
 		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(call get_glooe_var,GC_FLAGS) \
 		--build-arg VERIFY_SCRIPT=$(GLOOE_DIR)/verify-plugins-linux-amd64 \
@@ -67,7 +67,7 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 .PHONY: release-plugins
 release-plugins: build-plugins
 ifeq ($(RELEASE),"true")
-	docker push quay.io/solo-io/ext-auth-plugins:$(VERSION)
+	docker push quay.io/solo-io/ext-auth-plugin-examples:$(VERSION)
 else
 	@echo This is not a release build. Example plugins will not be published.
 endif

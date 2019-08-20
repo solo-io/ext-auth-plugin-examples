@@ -127,15 +127,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:6511914cc1ead921e8524a7b171d7356db2c3cddab58c863cc8e783d18ca28d9"
+  digest = "1:02bd6d343be7d553a548b791e6fdd4189be86d696fcc0e10a775f1b6e7261dd1"
   name = "github.com/solo-io/ext-auth-plugins"
-  packages = [
-    "api",
-    "examples/required_header/pkg",
-  ]
+  packages = ["api"]
   pruneopts = "UT"
-  revision = "07591cd0c4e7bfb05f0d1f90735ee6801a5d5f7c"
-  version = "v0.0.2"
+  revision = "2301b8f44fbf91f805948d1ac373e33dd464fabb"
+  version = "v0.0.1"
 
 [[projects]]
   digest = "1:2c5d346ada219cd2b445a72035122d3589d349b7e3389294a1873376b90ed13e"
@@ -311,7 +308,6 @@
     "github.com/onsi/gomega",
     "github.com/pelletier/go-toml",
     "github.com/solo-io/ext-auth-plugins/api",
-    "github.com/solo-io/ext-auth-plugins/examples/required_header/pkg",
     "github.com/solo-io/go-utils/contextutils",
     "go.uber.org/zap",
   ]

@@ -1,8 +1,8 @@
 package main
 
 import (
+	impl "github.com/solo-io/ext-auth-plugin-examples/plugins/required_header/pkg"
 	"github.com/solo-io/ext-auth-plugins/api"
-	impl "github.com/solo-io/ext-auth-plugins/examples/required_header/pkg"
 )
 
 func main() {}

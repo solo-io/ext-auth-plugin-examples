@@ -6,47 +6,47 @@ steps:
   id: 'dep'
   args: ['ensure']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   id: 'compare-dependencies'
   args: ['compare-deps']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugins'
+  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   id: 'build-plugins-for-tests'
   args: ['build-plugins-for-tests']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugins'
+  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
 
 - name: 'gcr.io/$PROJECT_ID/ginkgo:0.1.12'
   id: 'test-plugins'
   args: ['-r']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugins'
+  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
 
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   id: 'build-plugins'
   args: ['build-plugins']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugins'
+  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
@@ -57,11 +57,11 @@ steps:
 - name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
   args: ['release-plugins']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugins'
+  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
   - 'GOPATH=/workspace/gopath'
   - 'TAGGED_VERSION=$TAG_NAME'
   - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugins'
+  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
   id: 'release-plugins'
 
 secrets:

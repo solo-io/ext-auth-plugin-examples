@@ -11,22 +11,22 @@ RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument 
 
 RUN apk add --no-cache gcc musl-dev
 
-ADD . /go/src/github.com/solo-io/ext-auth-plugins/
-WORKDIR /go/src/github.com/solo-io/ext-auth-plugins
+ADD . /go/src/github.com/solo-io/ext-auth-plugin-examples/
+WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
 
 # De-vendor all the dependencies and move them to the GOPATH.
 # We need this so that the import paths for any library shared between the plugins and Gloo are the same.
 RUN cp -a vendor/. /go/src/ && rm -rf vendor
 
 # Build plugins with CGO enabled
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" -o examples/RequiredHeader.so examples/required_header/plugin.go
+RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
 # Verify that plugins can be loaded by GlooE
 RUN chmod +x $VERIFY_SCRIPT
-RUN $VERIFY_SCRIPT -pluginDir examples -manifest examples/plugin_manifest.yaml
+RUN $VERIFY_SCRIPT -pluginDir plugins -manifest plugins/plugin_manifest.yaml
 
 # This stage builds the final image containing just the plugin .so files
 FROM alpine:3.10.1
 RUN mkdir /compiled-auth-plugins
-COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugins/examples/RequiredHeader.so /compiled-auth-plugins/
+COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugin-examples/plugins/RequiredHeader.so /compiled-auth-plugins/
 CMD cp /compiled-auth-plugins/* /auth-plugins/
