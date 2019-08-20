@@ -1,4 +1,6 @@
-![asd](./img/gloo-plugin.png)
+<h1 align="center">
+    <img src="https://github.com/solo-io/ext-auth-plugin-examples/raw/master/img/gloo-plugin.png" alt="Gloo Plugins" width="440" height="309">
+</h1>
 
 # External auth plugin examples
 This repository contains example implementations of the 
