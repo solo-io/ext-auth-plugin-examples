@@ -12,7 +12,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-plugins"
-  version = "=v0.0.1"
+  version = "=v0.0.3"
 
 [[constraint]]
   name = "github.com/envoyproxy/go-control-plane"

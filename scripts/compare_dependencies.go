@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pelletier/go-toml"
 	"io/ioutil"
 	"os"
+
+	"github.com/pelletier/go-toml"
 )
 
 const errorReportFile = "mismatched_dependencies.json"
