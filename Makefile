@@ -70,7 +70,7 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 #----------------------------------------------------------------------------------
 
 .PHONY: release-plugins
-release-plugins: build-plugins
+release-plugins:
 ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/ext-auth-plugin-examples:$(VERSION)
 else
