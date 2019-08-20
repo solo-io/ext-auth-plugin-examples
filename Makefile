@@ -1,4 +1,4 @@
-GLOOE_VERSION := 0.18.12
+GLOOE_VERSION := 0.18.13
 BUILD_ID := $(BUILD_ID)
 RELEASE := "true"
 ifeq ($(TAGGED_VERSION),)
@@ -6,6 +6,11 @@ ifeq ($(TAGGED_VERSION),)
 	RELEASE := "false"
 endif
 VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
+
+.PHONY: format
+format:
+	gofmt -w -e plugins scripts
+	goimports -w -e plugins scripts
 
 #----------------------------------------------------------------------------------
 # Retrieve GlooE build information
@@ -65,7 +70,7 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 #----------------------------------------------------------------------------------
 
 .PHONY: release-plugins
-release-plugins: build-plugins
+release-plugins:
 ifeq ($(RELEASE),"true")
 	docker push quay.io/solo-io/ext-auth-plugin-examples:$(VERSION)
 else

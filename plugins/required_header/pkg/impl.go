@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	envoycorev2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyauthv2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	"github.com/solo-io/ext-auth-plugins/api"

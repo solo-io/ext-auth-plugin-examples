@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"plugin"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	impl "github.com/solo-io/ext-auth-plugin-examples/plugins/required_header/pkg"
 	"github.com/solo-io/ext-auth-plugins/api"
-	"plugin"
 )
 
 var _ = Describe("Plugin", func() {
