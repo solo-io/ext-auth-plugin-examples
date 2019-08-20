@@ -1,4 +1,4 @@
-![asd](./GlooSmall_Plugin.png)
+![asd](./img/gloo-plugin.png)
 
 # External auth plugin examples
 This repository contains example implementations of the 
