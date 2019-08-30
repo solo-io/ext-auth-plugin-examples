@@ -18,15 +18,17 @@ WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
 # We need this so that the import paths for any library shared between the plugins and Gloo are the same.
 RUN cp -a vendor/. /go/src/ && rm -rf vendor
 
-# Build plugins with CGO enabled
+# Build plugin(s) with CGO enabled
 RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
-# Verify that plugins can be loaded by GlooE
+# Verify that plugin(s) can be loaded by GlooE
 RUN chmod +x $VERIFY_SCRIPT
 RUN $VERIFY_SCRIPT -pluginDir plugins -manifest plugins/plugin_manifest.yaml
 
-# This stage builds the final image containing just the plugin .so files
+# This stage just copies over the plugin .so files from the previous stage
 FROM alpine:3.10.1
 RUN mkdir /compiled-auth-plugins
 COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugin-examples/plugins/RequiredHeader.so /compiled-auth-plugins/
+# This is the command that will be executed when the container is run.
+# It has to copy the compiled plugin file(s) to a directory.
 CMD cp /compiled-auth-plugins/* /auth-plugins/
