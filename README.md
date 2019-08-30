@@ -34,7 +34,9 @@ dependency version
 
 ### compare-deps
 The `compare-deps` target compares the local `Gopkg.lock` with the one describing the GlooE dependencies. It will succeed 
-if the shared dependencies match _exactly_ and fail otherwise, outputting information about mismatches to stdout and a file.
+if the shared dependencies match _exactly_ (this is another constraint imposed by Go plugins, more info 
+[here](https://gloo.solo.io/dev/writing_auth_plugins/#build-helper-tools)) and fail otherwise, outputting information 
+about mismatches to stdout and a file.
 
 ### build-plugins
 The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
