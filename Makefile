@@ -1,12 +1,3 @@
-GLOOE_VERSION := 0.18.13
-BUILD_ID := $(BUILD_ID)
-RELEASE := "true"
-ifeq ($(TAGGED_VERSION),)
-	TAGGED_VERSION := v$(BUILD_ID)
-	RELEASE := "false"
-endif
-VERSION ?= $(shell echo $(TAGGED_VERSION) | cut -c 2-)
-
 .PHONY: format
 format:
 	gofmt -w -e plugins scripts
@@ -17,6 +8,9 @@ format:
 #----------------------------------------------------------------------------------
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
+
+# Set this variable to the version of GlooE you want to target
+GLOOE_VERSION ?= 0.18.21
 
 .PHONY: get-glooe-info
 get-glooe-info: $(GLOOE_DIR)/Gopkg.lock $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
@@ -52,7 +46,7 @@ endef
 
 .PHONY: build-plugins
 build-plugins: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache -t quay.io/solo-io/ext-auth-plugin-examples:$(VERSION) \
+	docker build --no-cache \
 		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
 		--build-arg GC_FLAGS=$(call get_glooe_var,GC_FLAGS) \
 		--build-arg VERIFY_SCRIPT=$(GLOOE_DIR)/verify-plugins-linux-amd64 \
@@ -63,16 +57,3 @@ build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
 
 $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 	go build -buildmode=plugin -o $(EXAMPLES_DIR)/required_header/RequiredHeader.so $(EXAMPLES_DIR)/required_header/plugin.go
-
-
-#----------------------------------------------------------------------------------
-# Release plugins
-#----------------------------------------------------------------------------------
-
-.PHONY: release-plugins
-release-plugins:
-ifeq ($(RELEASE),"true")
-	docker push quay.io/solo-io/ext-auth-plugin-examples:$(VERSION)
-else
-	@echo This is not a release build. Example plugins will not be published.
-endif
