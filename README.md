@@ -27,7 +27,7 @@ GLOOE_VERSION=<target-glooe-version> make get-glooe-info
 where `GLOOE_VERSION` is the desired GlooE version, e.g. `0.18.21`.
 
 This will download the following files:
-- `_glooe/build_env`: values to parametrize the plugin build with
+- `_glooe/build_env`: values to parameterize the plugin build with
 - `_glooe/Gopkg.lock`: the [dep .lock file](https://golang.github.io/dep/docs/Gopkg.lock.html) containing all GlooE 
 dependency version
 - `_glooe/verify-plugins-linux-amd64`: a script to verify whether your plugin can be loaded by GlooE
@@ -40,7 +40,7 @@ about mismatches to stdout and a file.
 
 ### build-plugins
 The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
-repository(this is done for reproducibility). It uses the information published by GlooE to mirror its build 
+repository (this is done for reproducibility). It uses the information published by GlooE to mirror its build 
 environment and verify compatibility.
 
 ## Get example images
