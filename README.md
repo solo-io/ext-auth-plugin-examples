@@ -38,7 +38,7 @@ if the shared dependencies match _exactly_ and fail otherwise, outputting inform
 
 ### build-plugins
 The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
-repository(this is done for reproducibility). It uses the information published by GlooE to mirror its build 
+repository (this is done for reproducibility). It uses the information published by GlooE to mirror its build 
 environment and verify compatibility.
 
 ## Get example images
