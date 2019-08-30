@@ -21,7 +21,7 @@ of the [Auth Plugin Developer Guide](https://gloo.solo.io/dev/writing_auth_plugi
 the information that you will require to replicate its build environment. You can get them by running
 
 ```bash
-GLOOE_VERSION=<target-glooe-version> get-glooe-info
+GLOOE_VERSION=<target-glooe-version> make get-glooe-info
 ```
 
 where `GLOOE_VERSION` is the desired GlooE version, e.g. `0.18.21`.
