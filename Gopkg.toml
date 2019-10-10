@@ -8,7 +8,7 @@
 
 [[constraint]]
   name = "github.com/solo-io/go-utils"
-  version = "v0.10.0"
+  version = "=v0.10.0"
 
 [[constraint]]
   name = "github.com/solo-io/ext-auth-plugins"

@@ -123,8 +123,8 @@
     "contextutils",
   ]
   pruneopts = "UT"
-  revision = "5f542d97aa0fb3d28d29ff9e2e21cef390ea3f80"
-  version = "v0.10.18"
+  revision = "075c4b07de59a9b7b20475b7eab02dcdc6a62d64"
+  version = "v0.10.0"
 
 [[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
