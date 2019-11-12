@@ -10,6 +10,6 @@ func main() {}
 // Compile-time assertion
 var _ api.ExtAuthPlugin = new(impl.RequiredHeaderPlugin)
 
-// This is the exported symbol that GlooE will look for.
+// This is the exported symbol that Gloo will look for.
 //noinspection GoUnusedGlobalVariable
 var Plugin impl.RequiredHeaderPlugin
