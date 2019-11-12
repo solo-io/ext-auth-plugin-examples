@@ -24,7 +24,7 @@ the information that you will require to replicate its build environment. You ca
 GLOOE_VERSION=<target-glooe-version> make get-glooe-info
 ```
 
-where `GLOOE_VERSION` is the desired GlooE version, e.g. `0.18.21`.
+where `GLOOE_VERSION` is the desired GlooE version, e.g. `0.20.6`.
 
 This will download the following files:
 - `_glooe/build_env`: values to parameterize the plugin build with
@@ -50,7 +50,7 @@ You can get the images for the example plugin(s) whose source code is contained 
 docker pull quay.io/solo-io/ext-auth-plugins:<glooe_version>
 ```
 
-where the tag `glooe_version` is the version of GlooE you want to run the plugins with, e.g. `0.18.21`.
+where the tag `glooe_version` is the version of GlooE you want to run the plugins with, e.g. `0.20.6`.
 
 ## Publishing your own plugins
 To publish your own images you can just tag the image built in the `build-plugins` target (by adding add a `-t` option) 
