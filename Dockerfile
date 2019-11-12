@@ -9,13 +9,13 @@ ARG GC_FLAGS
 ARG VERIFY_SCRIPT
 
 # Fail if VERIFY_SCRIPT not set
-# We don't have the same check GC_FLAGS as empty values are allowed
+# We don't have the same check as on GC_FLAGS as empty values are allowed there
 RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
 
-# Install packaes needed for compilation
+# Install packages needed for compilation
 RUN apk add --no-cache gcc musl-dev
 
-# Copy the repository to the image and set it as the working directory. The GOPATH her is `/go`.
+# Copy the repository to the image and set it as the working directory. The GOPATH here is `/go`.
 #
 # You have to update the path here to the one corresponding to your repository. This is usually in the form:
 # /go/src/github.com/YOUR_ORGANIZATION/PLUGIN_REPO_NAME
