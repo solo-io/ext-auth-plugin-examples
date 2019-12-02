@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:7214e04012a19e4797878709eaac41e64d535cac3c266514b50bdabf940e2a4c"
+  digest = "1:c62982c3f5c0e8b449bed24bf572ba926f47ddced4ae4f593c37895aa674942d"
   name = "github.com/envoyproxy/go-control-plane"
   packages = [
     "envoy/api/v2/core",
@@ -10,8 +10,8 @@
     "envoy/type",
   ]
   pruneopts = "UT"
-  revision = "0f0598e8dab0c0306119ca6fff632b0a672cbfa1"
-  version = "v0.8.2"
+  revision = "52b167a709f111e6298136064bbaae43419ab22f"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:743f8008a7fed04ef0d52261aef346766bbd5b3e360b90296d85289f8ef5c2e2"
@@ -21,29 +21,7 @@
   revision = "9b492f1473afa33350d86b62c298b45da868a33f"
 
 [[projects]]
-  digest = "1:e13cb038286ab79c110c415198e69fd8b02c5e7794cda168c04e3149736d8a21"
-  name = "github.com/gogo/googleapis"
-  packages = ["google/rpc"]
-  pruneopts = "UT"
-  revision = "08a7655d27152912db7aaf4f983275eaf8d128ef"
-  version = "v1.0.0"
-
-[[projects]]
-  digest = "1:c23ef5b1fa68d209f3a299f58f3de6ecf126c1724a8c2d28e7930c291eb32dd5"
-  name = "github.com/gogo/protobuf"
-  packages = [
-    "gogoproto",
-    "proto",
-    "protoc-gen-gogo/descriptor",
-    "sortkeys",
-    "types",
-  ]
-  pruneopts = "UT"
-  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
-  version = "v1.2.1"
-
-[[projects]]
-  digest = "1:5d1b5a25486fc7d4e133646d834f6fca7ba1cef9903d40e7aa786c41b89e9e91"
+  digest = "1:72856926f8208767b837bf51e3373f49139f61889b67dc7fd3c2a0fd711e3f7a"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -51,7 +29,10 @@
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/empty",
+    "ptypes/struct",
     "ptypes/timestamp",
+    "ptypes/wrappers",
   ]
   pruneopts = "UT"
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
@@ -127,12 +108,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:1c53a9a165de209d59c3e2fd8f1f0d845fed97c54c558e23a384e477045fcc81"
+  digest = "1:3a8d90eb1433d1e1f488655299872ef827db95893125e32763f215e627b11cf6"
   name = "github.com/solo-io/ext-auth-plugins"
   packages = ["api"]
   pruneopts = "UT"
-  revision = "a088445a89f393b7e07927a4960190b325a40aee"
-  version = "v0.1.0"
+  revision = "c68a5e96bcce6c6272dc385c6de87de2014858b6"
+  version = "v0.1.1"
 
 [[projects]]
   digest = "1:2c5d346ada219cd2b445a72035122d3589d349b7e3389294a1873376b90ed13e"
