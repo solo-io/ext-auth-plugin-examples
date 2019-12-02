@@ -1,0 +1,6 @@
+changelog:
+  - type: DEPENDENCY_BUMP
+    description: Bumped the go-control-plane version to 0.9.0
+    dependencyOwner: envoyproxy
+    dependencyRepo: https://github.com/envoyproxy/go-control-plane
+    dependencyTag: 0.9.0
