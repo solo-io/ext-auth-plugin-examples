@@ -7,10 +7,6 @@
   source = "https://github.com/fsnotify/fsnotify.git"
 
 [[constraint]]
-  name = "github.com/solo-io/go-utils"
-  version = "=v0.9.17"
-
-[[constraint]]
   name = "github.com/solo-io/ext-auth-plugins"
   version = "=v0.1.0"
 
@@ -31,10 +27,6 @@
   version = "=v1.3.2"
 
 [[override]]
-  name = "github.com/golang/protobuf"
-  version = "=v1.2.0"
-
-[[override]]
   name = "gopkg.in/tomb.v1"
   revision = "c131134a1947e9afd9cecfe11f4c6dff0732ae58"
 
@@ -45,10 +37,6 @@
 [[override]]
   name = "github.com/onsi/ginkgo"
   version = "=v1.7.0"
-
-[[override]]
-  name = "github.com/onsi/gomega"
-  version = "=v1.4.3"
 
 [[override]]
   name = "gopkg.in/yaml.v2"
@@ -67,10 +55,6 @@
   version = "=v1.2.0"
 
 [[override]]
-  name = "google.golang.org/genproto"
-  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
-
-[[override]]
   name = "golang.org/x/sys"
   revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
 
@@ -81,3 +65,29 @@
 [[override]]
   name = "golang.org/x/text"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+
+
+[[override]]
+  name = "github.com/solo-io/go-utils"
+  revision = "c4b31e48e70d441b0f085d0a9cbd981ae620e0c7"
+
+
+[[override]]
+  name = "github.com/golang/protobuf"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+
+
+[[override]]
+  name = "github.com/onsi/gomega"
+  revision = "bdebf9e0ece900259084cfa4121b97ce1a540939"
+
+
+[[override]]
+  name = "google.golang.org/genproto"
+  revision = "548a555dbc03994223efbaba0090152849259498"
+
+
+[[override]]
+  name = "github.com/gogo/protobuf"
+  revision = "0ca988a254f991240804bf9821f3450d87ccbb1b"
+
