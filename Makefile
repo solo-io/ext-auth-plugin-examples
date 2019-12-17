@@ -57,3 +57,6 @@ build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
 
 $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 	go build -buildmode=plugin -o $(EXAMPLES_DIR)/required_header/RequiredHeader.so $(EXAMPLES_DIR)/required_header/plugin.go
+
+clean:
+	rm -rf _glooe

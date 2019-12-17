@@ -11,6 +11,7 @@ import (
 )
 
 const errorReportFile = "mismatched_dependencies.json"
+const overridesFile = "overrides.toml"
 
 type depProjects map[string]dependencyInfo
 
@@ -100,6 +101,25 @@ func main() {
 	if err := ioutil.WriteFile(errorReportFile, reportBytes, 0644); err != nil {
 		fmt.Printf("Failed to write error report file: %s/n", err.Error())
 	}
+
+	overrideFile, err := os.Create(overridesFile)
+	if err == nil {
+		for _, pair := range nonMatchingDeps {
+
+			fmt.Fprintf(overrideFile,
+				`
+[[override]]
+  name = "%s"
+  revision = "%s"
+
+`, pair.GlooE.Name, pair.GlooE.Revision)
+
+		}
+		overrideFile.Close()
+	}
+
+	fmt.Printf("Writing overrides file [%s], please reconcile that with yout Gopkg.toml file\n", overridesFile)
+
 	os.Exit(1)
 }
 
