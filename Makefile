@@ -17,14 +17,14 @@ get-glooe-info: $(GLOOE_DIR)/gloo_e_deps $(GLOOE_DIR)/verify-plugins-linux-amd64
 
 # TODO(marco): this file has been added it manually for the v1.0.0-rc8 release. Fetch it from the bucket once GlooE publishes it
 $(GLOOE_DIR)/gloo_e_deps:
-#	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/gloo_e_deps
+#	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/gloo_e_deps
 	cp gloo_e_deps_1.0.0-rc8 $@
 
 $(GLOOE_DIR)/verify-plugins-linux-amd64:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
+	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
 
 $(GLOOE_DIR)/build_env:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
+	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
 
 
 #----------------------------------------------------------------------------------

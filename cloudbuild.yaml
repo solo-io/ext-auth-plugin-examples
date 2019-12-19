@@ -1,49 +1,27 @@
 steps:
-# Using dep container from github.com/solo-io/cloud-builders/dep
-# This copies files into the proper workspace layout and so must be run before other tasks.
-# Subsequent steps must set the $GOPATH env variable.
-- name: 'gcr.io/$PROJECT_ID/dep'
-  id: 'dep'
-  args: ['ensure']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
-
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
+- name: 'gcr.io/$PROJECT_ID/go-mod-ginkgo:0.2.1'
   id: 'compare-dependencies'
-  args: ['compare-deps']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
-  - 'GOPATH=/workspace/gopath'
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
+  entrypoint: 'sh'
+  args: ['-c', 'make compare-deps']
+  volumes: &vol
+  - name: go-modules
+    path: /go
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
+- name: 'gcr.io/$PROJECT_ID/go-mod-ginkgo:0.2.1'
   id: 'build-plugins-for-tests'
-  args: ['build-plugins-for-tests']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
-  - 'GOPATH=/workspace/gopath'
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
+  entrypoint: 'sh'
+  args: ['-c', 'make build-plugins-for-tests']
+  volumes: *vol
 
-- name: 'gcr.io/$PROJECT_ID/ginkgo:0.1.12'
+- name: 'gcr.io/$PROJECT_ID/go-mod-ginkgo:0.2.1'
   id: 'test-plugins'
-  args: ['-r']
+  args: ['-r', 'plugins']
   env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
-  - 'GOPATH=/workspace/gopath'
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
+  - 'GOPATH=/go'
+  volumes: *vol
 
-- name: 'gcr.io/$PROJECT_ID/go-make:0.1.12'
+- name: 'gcr.io/$PROJECT_ID/go-mod-ginkgo:0.2.1'
   id: 'build-plugins'
-  args: ['build-plugins']
-  env:
-  - 'PROJECT_ROOT=github.com/solo-io/ext-auth-plugin-examples'
-  - 'GOPATH=/workspace/gopath'
-  - 'TAGGED_VERSION=$TAG_NAME'
-  - 'BUILD_ID=$BUILD_ID'
-  dir: './gopath/src/github.com/solo-io/ext-auth-plugin-examples'
+  entrypoint: 'sh'
+  args: ['-c', 'make build-plugins']
+  volumes: *vol
