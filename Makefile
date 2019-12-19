@@ -10,29 +10,34 @@ GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.0.0-rc2
+GLOOE_VERSION ?= 1.0.0-rc8
 
 .PHONY: get-glooe-info
-get-glooe-info: $(GLOOE_DIR)/Gopkg.lock $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
+get-glooe-info: $(GLOOE_DIR)/gloo_e_deps $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
 
-$(GLOOE_DIR)/Gopkg.lock:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/Gopkg.lock
+# TODO(marco): this file has been added it manually for the v1.0.0-rc8 release. Fetch it from the bucket once GlooE publishes it
+$(GLOOE_DIR)/gloo_e_deps:
+#	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/gloo_e_deps
+	cp gloo_e_deps_1.0.0-rc8 $@
 
 $(GLOOE_DIR)/verify-plugins-linux-amd64:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
+	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
 
 $(GLOOE_DIR)/build_env:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
+	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
 
 
 #----------------------------------------------------------------------------------
 # Compare dependencies against GlooE
 #----------------------------------------------------------------------------------
+.PHONY: get-plugin-dependencies
+get-plugin-dependencies:
+	go mod vendor
+	go list -m all > plugin_dependencies
 
 .PHONY: compare-deps
-compare-deps: Gopkg.lock $(GLOOE_DIR)/Gopkg.lock
-	go run scripts/compare_dependencies.go Gopkg.lock $(GLOOE_DIR)/Gopkg.lock
-
+compare-deps: get-plugin-dependencies $(GLOOE_DIR)/gloo_e_deps
+	go run scripts/compare_deps/main.go plugin_dependencies $(GLOOE_DIR)/gloo_e_deps
 
 #----------------------------------------------------------------------------------
 # Build plugins
