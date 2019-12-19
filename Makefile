@@ -13,10 +13,11 @@ _ := $(shell mkdir -p $(GLOOE_DIR))
 GLOOE_VERSION ?= 1.0.0-rc8
 
 .PHONY: get-glooe-info
-get-glooe-info: $(GLOOE_DIR)/go.mod $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
+get-glooe-info: $(GLOOE_DIR)/gloo_e_deps $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
 
-$(GLOOE_DIR)/go.mod:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/go.mod
+$(GLOOE_DIR)/gloo_e_deps:
+#	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/gloo_e_deps
+	cp gloo_e_deps.txt $@
 
 $(GLOOE_DIR)/verify-plugins-linux-amd64:
 	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
@@ -28,11 +29,14 @@ $(GLOOE_DIR)/build_env:
 #----------------------------------------------------------------------------------
 # Compare dependencies against GlooE
 #----------------------------------------------------------------------------------
+.PHONY: get-plugin-dependencies
+get-plugin-dependencies:
+	go mod vendor
+	go list -m all > plugin_dependencies
 
 .PHONY: compare-deps
-compare-deps: go.mod $(GLOOE_DIR)/go.mod
-	go run scripts/compare_deps/main.go go.mod $(GLOOE_DIR)/go.mod
-
+compare-deps: get-plugin-dependencies $(GLOOE_DIR)/gloo_e_deps
+	go run scripts/compare_deps/main.go plugin_dependencies $(GLOOE_DIR)/gloo_e_deps
 
 #----------------------------------------------------------------------------------
 # Build plugins
