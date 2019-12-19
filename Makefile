@@ -10,13 +10,13 @@ GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.0.0-rc2
+GLOOE_VERSION ?= 1.0.0-rc8
 
 .PHONY: get-glooe-info
-get-glooe-info: $(GLOOE_DIR)/Gopkg.lock $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
+get-glooe-info: $(GLOOE_DIR)/go.mod $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
 
-$(GLOOE_DIR)/Gopkg.lock:
-	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/Gopkg.lock
+$(GLOOE_DIR)/go.mod:
+	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/go.mod
 
 $(GLOOE_DIR)/verify-plugins-linux-amd64:
 	curl -o $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
@@ -30,8 +30,8 @@ $(GLOOE_DIR)/build_env:
 #----------------------------------------------------------------------------------
 
 .PHONY: compare-deps
-compare-deps: Gopkg.lock $(GLOOE_DIR)/Gopkg.lock
-	go run scripts/compare_dependencies.go Gopkg.lock $(GLOOE_DIR)/Gopkg.lock
+compare-deps: go.mod $(GLOOE_DIR)/go.mod
+	go run scripts/compare_deps/main.go go.mod $(GLOOE_DIR)/go.mod
 
 
 #----------------------------------------------------------------------------------
