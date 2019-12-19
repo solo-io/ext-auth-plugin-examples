@@ -1,0 +1,13 @@
+module github.com/solo-io/solo-projects
+
+go 1.13
+
+require (
+	github.com/foo/foo v1.0.0
+	github.com/bar/bar v1.0.1
+	github.com/xxx/yyy v1.0.2
+)
+
+replace (
+    github.com/bar/bar => github.com/bar/barrr v1.0.1
+)

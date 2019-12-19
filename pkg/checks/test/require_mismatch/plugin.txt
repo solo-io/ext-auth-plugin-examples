@@ -1,0 +1,9 @@
+module github.com/solo-io/ext-auth-plugin-examples
+
+go 1.13
+
+require (
+	github.com/foo/foo v1.0.0
+	github.com/bar/bar v1.0.2
+	github.com/baz/baz v1.1.0
+)
