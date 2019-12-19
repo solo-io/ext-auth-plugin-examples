@@ -1,9 +1,0 @@
-module github.com/solo-io/solo-projects
-
-go 1.13
-
-require (
-	github.com/foo/foo v1.0.0
-	github.com/bar/bar v1.0.1
-	github.com/some/dep v1.2.3
-)

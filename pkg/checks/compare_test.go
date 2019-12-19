@@ -17,54 +17,85 @@ const (
 var _ = Describe("Dependency verification script", func() {
 
 	DescribeTable("can detect incompatible dependency requirements",
-		func(scenarioDir string, expectedErr *checks.DependencyError) {
+		func(scenarioDir string, expectError bool, expectedMismatchedDeps []checks.DependencyInfoPair) {
 
 			plugin := filepath.Join(testFileDir, scenarioDir, pluginModFileName)
 			gloo := filepath.Join(testFileDir, scenarioDir, glooModFileName)
 
-			report, err := checks.CompareDependencies(plugin, gloo)
-			Expect(err).NotTo(HaveOccurred())
-
-			if expectedErr == nil {
-				Expect(report).To(HaveLen(0))
+			mismatchedDeps, err := checks.CompareDependencies(plugin, gloo)
+			if expectError {
+				Expect(err).To(HaveOccurred())
 			} else {
-				Expect(report).To(HaveLen(1))
-				actualErr := report.GetEntry(expectedErr.Module)
-				Expect(actualErr).NotTo(BeNil())
-				Expect(actualErr.Kind).To(Equal(expectedErr.Kind))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(mismatchedDeps).To(BeEquivalentTo(expectedMismatchedDeps))
 			}
 		},
-		Entry("succeeds if deps are compatible", "success_1", nil),
-		Entry("succeeds if deps are compatible (with replace)", "success_2", nil),
-		Entry("fails if there is a [require] mismatch",
-			"require_mismatch",
-			&checks.DependencyError{
-				Kind:   checks.GlooRequireVersionMismatch,
-				Module: "github.com/bar/bar",
-			}),
-		Entry("fails if gloo replaces a module required by the plugin (different name)",
-			"gloo_replaces_req_1",
-			&checks.DependencyError{
-				Kind:   checks.GlooReplaceNameMismatch,
-				Module: "github.com/bar/bar",
-			}),
-		Entry("fails if gloo replaces a module required by the plugin (different version)",
-			"gloo_replaces_req_2",
-			&checks.DependencyError{
-				Kind:   checks.GlooReplaceVersionMismatch,
-				Module: "github.com/bar/bar",
-			}),
-		Entry("fails if gloo replaces a module and the plugin does not",
-			"plugin_missing_replace_1",
-			&checks.DependencyError{
-				Kind:   checks.PluginMissingReplace,
-				Module: "github.com/bar/bar",
-			}),
-		Entry("fails if gloo and the plugin replace a module in different ways",
-			"plugin_missing_replace_2",
-			&checks.DependencyError{
-				Kind:   checks.PluginReplaceMismatch,
-				Module: "github.com/bar/bar",
-			}),
+		Entry("succeeds if deps are compatible", "success", false, nil),
+		Entry("fails if a file is malformed", "malformed", true, nil),
+		Entry("fails if dependencies are not compatible", "mismatch", false,
+			[]checks.DependencyInfoPair{{
+				Message: "Please pin your dependency to the same version as the Gloo one using a [require] clause",
+				Plugin: checks.DependencyInfo{
+					Name:    "github.com/solo-io/foo",
+					Version: "v0.0.0-20180207000608-aaaaaaaaaaaa",
+				},
+				Gloo: checks.DependencyInfo{
+					Name:    "github.com/solo-io/foo",
+					Version: "v0.0.0-20180207000608-0eeff89b0690",
+				},
+			}},
+		),
+		Entry("succeeds if deps with replacements are compatible", "success_replacements", false, nil),
+		Entry("fails if gloo replaces a dep but the plugin does not", "mismatch_replace_1", false,
+			[]checks.DependencyInfoPair{{
+				Message: "Please add a [replace] clause matching the Gloo one",
+				Plugin: checks.DependencyInfo{
+					Name:    "github.com/solo-io/bar",
+					Version: "v1.23.3",
+				},
+				Gloo: checks.DependencyInfo{
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        true,
+					ReplacementName:    "github.com/solo-io/bar",
+					ReplacementVersion: "v1.2.4",
+				},
+			}},
+		),
+		Entry("fails if the plugin replaces a dep but Gloo does not", "mismatch_replace_2", false,
+			[]checks.DependencyInfoPair{{
+				Message: "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause",
+				Plugin: checks.DependencyInfo{
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        true,
+					ReplacementName:    "github.com/solo-io/bar",
+					ReplacementVersion: "v1.2.4",
+				},
+				Gloo: checks.DependencyInfo{
+					Name:    "github.com/solo-io/bar",
+					Version: "v1.2.20",
+				},
+			}},
+		),
+		Entry("fails if both the plugin and Gloo replace a dep but the replacements do not match", "mismatch_replace_3", false,
+			[]checks.DependencyInfoPair{{
+				Message: "The plugin [replace] clause must match the Gloo one",
+				Plugin: checks.DependencyInfo{
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        true,
+					ReplacementName:    "github.com/solo-io/bar",
+					ReplacementVersion: "v1.2.4",
+				},
+				Gloo: checks.DependencyInfo{
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        true,
+					ReplacementName:    "github.com/solo-io/bar",
+					ReplacementVersion: "v1.2.5",
+				},
+			}},
+		),
 	)
 })

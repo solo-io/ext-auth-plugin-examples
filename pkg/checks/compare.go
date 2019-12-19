@@ -1,129 +1,128 @@
 package checks
 
 import (
+	"bufio"
 	"github.com/pkg/errors"
-	"golang.org/x/mod/modfile"
-	"golang.org/x/mod/module"
-	"io/ioutil"
 	"os"
+	"strings"
 )
 
 // Used to easily look up module info by module name.
-type indexedModFile struct {
-	required,
-	requiredWithoutReplace map[string]*module.Version
-	replaced map[string]*modfile.Replace
+type DependencyInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+
+	Replacement        bool   `json:"replacement"`
+	ReplacementName    string `json:"replacementName,omitempty"`
+	ReplacementVersion string `json:"replacementVersion,omitempty"`
 }
 
-func CompareDependencies(pluginGoModFilePath, glooGoModFilePath string) (Report, error) {
+type DependencyInfoPair struct {
+	Message string         `json:"message"`
+	Plugin  DependencyInfo `json:"pluginDependencies"`
+	Gloo    DependencyInfo `json:"glooDependencies"`
+}
 
-	pluginGoModFile, err := parseModFile(pluginGoModFilePath)
+func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
+
+	pluginDependencies, err := parseDependenciesFile(pluginsDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
-	glooGoModFile, err := parseModFile(glooGoModFilePath)
+	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
 	}
 
-	rep := Report{}
+	var nonMatchingDeps []DependencyInfoPair
+	for name, depInfo := range pluginDependencies {
 
-	// Start by checking all the [require] entries in the plugin go.mod file that don't have a corresponding
-	// [replace] entry in the same file. We will check [replace] entries in the plugin go.mod file later.
-	for moduleName, modInfo := range pluginGoModFile.requiredWithoutReplace {
-
-		// Check if GlooE defines a replacement for the module
-		if correspondingGlooReplace, ok := glooGoModFile.replaced[modInfo.Path]; ok {
-
-			// If it does, check the name of the replacement
-			if correspondingGlooReplace.New.Path != moduleName {
-				rep.AddEntry(GlooReplaceNameMismatch, moduleName,
-					glooDefinesReplacementWithDifferentName(moduleName, correspondingGlooReplace.New.Path))
-				continue
-			}
-
-			// If the name matches, check the version
-			if correspondingGlooReplace.New.Version != modInfo.Version {
-				rep.AddEntry(GlooReplaceVersionMismatch, moduleName,
-					glooDefinesReplacementWithDifferentVersion(moduleName, modInfo.Version, correspondingGlooReplace.New.Version))
-				continue
-			}
-		}
-
-		// Check if GlooE defines a requirement for the module
-		if correspondingGlooRequire, ok := glooGoModFile.required[modInfo.Path]; ok {
-			// If it does, check that the versions align
-			if correspondingGlooRequire.Version != modInfo.Version {
-				rep.AddEntry(GlooRequireVersionMismatch, moduleName,
-					glooDefinesRequirementWithDifferentVersion(moduleName, modInfo.Version, correspondingGlooRequire.Version))
+		// Just check libraries that are shared with GlooE
+		if glooEquivalent, ok := glooDependencies[name]; ok {
+			if match, msg := matches(glooEquivalent, depInfo); !match {
+				nonMatchingDeps = append(nonMatchingDeps, DependencyInfoPair{
+					Message: msg,
+					Plugin:  depInfo,
+					Gloo:    glooEquivalent,
+				})
 			}
 		}
 	}
 
-	// Now check all the [replace] entries in the plugin go.mod file.
-	// We do not want to [replace] any [require] (without a [replace]) that appears in the GlooE go.mod file.
-	for moduleName, modInfo := range pluginGoModFile.replaced {
-
-		// Check if GlooE defines a requirement (and no replacement) for the module.
-		if correspondingGlooRequire, ok := glooGoModFile.requiredWithoutReplace[modInfo.Old.Path]; ok {
-			rep.AddEntry(PluginReplaceIsGlooRequirement, moduleName,
-				pluginDefinesReplacementThatIsRequirementInGloo(moduleName, correspondingGlooRequire.Version))
-			continue
-		}
-	}
-
-	// Lastly, verify that all the [replace] entries in the GlooE go.mod file appear in the plugin go.mod file as well.
-	// We need this in order to guarantee that the indirect dependencies that are shared will match.
-	for moduleName, modInfo := range glooGoModFile.replaced {
-
-		correspondingPluginReplace, ok := pluginGoModFile.replaced[modInfo.Old.Path]
-		if !ok {
-			rep.AddEntry(PluginMissingReplace, moduleName,
-				pluginIsMissingReplacement(moduleName, modInfo.New.String()))
-			continue
-		}
-		if correspondingPluginReplace.New.Path != modInfo.New.Path || correspondingPluginReplace.New.Version != modInfo.New.Version {
-			rep.AddEntry(PluginReplaceMismatch, moduleName,
-				glooDefinesReplacementThatDoesNotMatchInPlugin(moduleName, correspondingPluginReplace.New.String(), modInfo.New.String()))
-		}
-	}
-
-	return rep, nil
+	return nonMatchingDeps, nil
 }
 
-func parseModFile(filePath string) (*indexedModFile, error) {
+func matches(glooDep, pluginDep DependencyInfo) (bool, string) {
+	// If both are simple dependencies, just compare the versions
+	switch {
+	case glooDep.Replacement == false && pluginDep.Replacement == false:
+		if glooDep.Version == pluginDep.Version {
+			return true, ""
+		} else {
+			return false, "Please pin your dependency to the same version as the Gloo one using a [require] clause"
+		}
+	case glooDep.Replacement == true && pluginDep.Replacement == false:
+		return false, "Please add a [replace] clause matching the Gloo one"
+	case glooDep.Replacement == false && pluginDep.Replacement == true:
+		return false, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
+	case glooDep.Replacement && pluginDep.Replacement:
+		if glooDep.ReplacementName == pluginDep.ReplacementName && glooDep.ReplacementVersion == pluginDep.ReplacementVersion {
+			return true, ""
+		} else {
+			return false, "The plugin [replace] clause must match the Gloo one"
+		}
+	}
+
+	return false, "internal error"
+}
+
+func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
 
-	fileContentsBytes, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load go.mod file from path [%s]", filePath)
-	}
-
-	modFile, err := modfile.Parse(filePath, fileContentsBytes, nil)
+	depFile, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
+	//noinspection ALL
+	defer depFile.Close()
 
-	indexedFile := &indexedModFile{
-		required:               make(map[string]*module.Version),
-		requiredWithoutReplace: make(map[string]*module.Version),
-		replaced:               make(map[string]*modfile.Replace),
-	}
-	for _, requirement := range modFile.Require {
-		indexedFile.required[requirement.Mod.Path] = &requirement.Mod
-	}
-	for _, replacement := range modFile.Replace {
-		indexedFile.replaced[replacement.Old.Path] = replacement
-	}
-	for _, requirement := range modFile.Require {
-		if _, ok := indexedFile.replaced[requirement.Mod.Path]; !ok {
-			indexedFile.requiredWithoutReplace[requirement.Mod.Path] = &requirement.Mod
+	dependencies := map[string]DependencyInfo{}
+
+	scanner := bufio.NewScanner(depFile)
+	skippedFirstLine := false
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		depInfo := strings.Fields(line)
+
+		// First line is the name of the module the `go list -m all` command was ran for
+		if !skippedFirstLine && len(depInfo) == 1 {
+			skippedFirstLine = true
+			continue
+		}
+
+		switch len(depInfo) {
+		case 2:
+			dependencies[depInfo[0]] = DependencyInfo{
+				Name:    depInfo[0],
+				Version: depInfo[1],
+			}
+		case 5:
+			dependencies[depInfo[0]] = DependencyInfo{
+				Name:               depInfo[0],
+				Version:            depInfo[1],
+				Replacement:        true,
+				ReplacementName:    depInfo[3],
+				ReplacementVersion: depInfo[4],
+			}
+		default:
+			return nil, errors.Errorf("malformed dependency: [%s]. "+
+				"Expected format 'NAME VERSION' or 'NAME VERSION => REPLACE_NAME REPLACE_VERSION'", line)
 		}
 	}
-
-	return indexedFile, nil
+	return dependencies, scanner.Err()
 }
 
 func checkFile(filename string) error {

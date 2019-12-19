@@ -16,10 +16,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	pluginGoModFilePath := os.Args[1]
-	glooGoModFilePath := os.Args[2]
+	pluginsDependenciesFilePath := os.Args[1]
+	glooDependenciesFilePath := os.Args[2]
 
-	report, err := checks.CompareDependencies(pluginGoModFilePath, glooGoModFilePath)
+	report, err := checks.CompareDependencies(pluginsDependenciesFilePath, glooDependenciesFilePath)
 	if err != nil {
 		fmt.Printf("Failed to compare dependencies: %s/n", err.Error())
 		os.Exit(1)
