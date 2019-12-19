@@ -34,7 +34,8 @@ var _ = Describe("Dependency verification script", func() {
 		Entry("fails if a file is malformed", "malformed", true, nil),
 		Entry("fails if dependencies are not compatible", "mismatch", false,
 			[]checks.DependencyInfoPair{{
-				Message: "Please pin your dependency to the same version as the Gloo one using a [require] clause",
+				Message:      "Please pin your dependency to the same version as the Gloo one using a [require] clause",
+				MismatchType: checks.Require,
 				Plugin: checks.DependencyInfo{
 					Name:    "github.com/solo-io/foo",
 					Version: "v0.0.0-20180207000608-aaaaaaaaaaaa",
@@ -48,7 +49,8 @@ var _ = Describe("Dependency verification script", func() {
 		Entry("succeeds if deps with replacements are compatible", "success_replacements", false, nil),
 		Entry("fails if gloo replaces a dep but the plugin does not", "mismatch_replace_1", false,
 			[]checks.DependencyInfoPair{{
-				Message: "Please add a [replace] clause matching the Gloo one",
+				Message:      "Please add a [replace] clause matching the Gloo one",
+				MismatchType: checks.PluginMissingReplace,
 				Plugin: checks.DependencyInfo{
 					Name:    "github.com/solo-io/bar",
 					Version: "v1.23.3",
@@ -64,7 +66,8 @@ var _ = Describe("Dependency verification script", func() {
 		),
 		Entry("fails if the plugin replaces a dep but Gloo does not", "mismatch_replace_2", false,
 			[]checks.DependencyInfoPair{{
-				Message: "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause",
+				Message:      "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause",
+				MismatchType: checks.PluginExtraReplace,
 				Plugin: checks.DependencyInfo{
 					Name:               "github.com/solo-io/bar",
 					Version:            "v1.2.3",
@@ -80,7 +83,8 @@ var _ = Describe("Dependency verification script", func() {
 		),
 		Entry("fails if both the plugin and Gloo replace a dep but the replacements do not match", "mismatch_replace_3", false,
 			[]checks.DependencyInfoPair{{
-				Message: "The plugin [replace] clause must match the Gloo one",
+				Message:      "The plugin [replace] clause must match the Gloo one",
+				MismatchType: checks.ReplaceMismatch,
 				Plugin: checks.DependencyInfo{
 					Name:               "github.com/solo-io/bar",
 					Version:            "v1.2.3",

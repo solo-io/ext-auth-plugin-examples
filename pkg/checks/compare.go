@@ -7,7 +7,17 @@ import (
 	"strings"
 )
 
-// Used to easily look up module info by module name.
+type MismatchType int
+
+const (
+	Ok MismatchType = iota
+	Require
+	PluginMissingReplace
+	PluginExtraReplace
+	ReplaceMismatch
+	Ko
+)
+
 type DependencyInfo struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
@@ -18,9 +28,10 @@ type DependencyInfo struct {
 }
 
 type DependencyInfoPair struct {
-	Message string         `json:"message"`
-	Plugin  DependencyInfo `json:"pluginDependencies"`
-	Gloo    DependencyInfo `json:"glooDependencies"`
+	Message      string         `json:"message"`
+	MismatchType MismatchType   `json:"-"`
+	Plugin       DependencyInfo `json:"pluginDependencies"`
+	Gloo         DependencyInfo `json:"glooDependencies"`
 }
 
 func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
@@ -39,11 +50,12 @@ func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]Depend
 
 		// Just check libraries that are shared with GlooE
 		if glooEquivalent, ok := glooDependencies[name]; ok {
-			if match, msg := matches(glooEquivalent, depInfo); !match {
+			if match, mismatchType, msg := matches(glooEquivalent, depInfo); !match {
 				nonMatchingDeps = append(nonMatchingDeps, DependencyInfoPair{
-					Message: msg,
-					Plugin:  depInfo,
-					Gloo:    glooEquivalent,
+					Message:      msg,
+					MismatchType: mismatchType,
+					Plugin:       depInfo,
+					Gloo:         glooEquivalent,
 				})
 			}
 		}
@@ -52,28 +64,28 @@ func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]Depend
 	return nonMatchingDeps, nil
 }
 
-func matches(glooDep, pluginDep DependencyInfo) (bool, string) {
+func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	// If both are simple dependencies, just compare the versions
 	switch {
 	case glooDep.Replacement == false && pluginDep.Replacement == false:
 		if glooDep.Version == pluginDep.Version {
-			return true, ""
+			return true, Ok, ""
 		} else {
-			return false, "Please pin your dependency to the same version as the Gloo one using a [require] clause"
+			return false, Require, "Please pin your dependency to the same version as the Gloo one using a [require] clause"
 		}
 	case glooDep.Replacement == true && pluginDep.Replacement == false:
-		return false, "Please add a [replace] clause matching the Gloo one"
+		return false, PluginMissingReplace, "Please add a [replace] clause matching the Gloo one"
 	case glooDep.Replacement == false && pluginDep.Replacement == true:
-		return false, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
+		return false, PluginExtraReplace, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
 	case glooDep.Replacement && pluginDep.Replacement:
 		if glooDep.ReplacementName == pluginDep.ReplacementName && glooDep.ReplacementVersion == pluginDep.ReplacementVersion {
-			return true, ""
+			return true, Ok, ""
 		} else {
-			return false, "The plugin [replace] clause must match the Gloo one"
+			return false, ReplaceMismatch, "The plugin [replace] clause must match the Gloo one"
 		}
 	}
 
-	return false, "internal error"
+	return false, Ko, "internal error"
 }
 
 func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
@@ -85,7 +97,7 @@ func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	//noinspection ALL
+	//noinspection GoUnhandledErrorResult
 	defer depFile.Close()
 
 	dependencies := map[string]DependencyInfo{}
