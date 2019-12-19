@@ -6,9 +6,10 @@ require (
 	github.com/envoyproxy/go-control-plane v0.9.1
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.1
-	github.com/pelletier/go-toml v1.6.0
+	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/solo-io/ext-auth-plugins v0.1.1
+	github.com/solo-io/go-utils v0.11.1
 	go.uber.org/zap v1.13.0
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd
 )
