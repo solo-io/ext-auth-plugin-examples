@@ -1,0 +1,8 @@
+changelog:
+- type: BREAKING_CHANGE
+  description: >
+    Until `v1.0.0-rc2`, we managed the Gloo Enterprise dependencies using `dep`. Starting with `v1.0.0-rc3` we switched
+    to Go Modules. This means that the tools we provide here to verify a plugin are outdated. Starting with `v1.0.0-rc9`,
+    Gloo Enterprise will publish the output of `go list -m all`. This change updates the tools to compare dependencies
+    by comparing the aforementioned file with the output of `go list -m all` in this repo and updates the README file.
+  issueLink: https://github.com/solo-io/ext-auth-plugin-examples/issues/10
