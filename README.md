@@ -106,7 +106,7 @@ First, store the version of Gloo Enterprise you want to target in an environment
 export GLOOE_VERSION=1.0.0-rc10
 ```
 
-Now let's fetch the build information for the Gloo Enterprise:
+Now let's fetch the build information for the targeted Gloo Enterprise version:
 ```
 make GLOOE_VERSION=$GLOOE_VERSION get-glooe-info
 ```
