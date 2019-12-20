@@ -29,7 +29,7 @@ $(GLOOE_DIR)/build_env:
 # Compare dependencies against GlooE
 #----------------------------------------------------------------------------------
 .PHONY: get-plugin-dependencies
-get-plugin-dependencies:
+get-plugin-dependencies: go.mod go.sum
 	go mod vendor
 	go list -m all > plugin_dependencies
 
@@ -63,3 +63,4 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 
 clean:
 	rm -rf _glooe
+	rm suggestions mismatched_dependencies.json plugin_dependencies

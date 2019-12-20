@@ -72,7 +72,7 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 			suggestionMap[checks.Require] = append(suggestionMap[checks.Require],
 				fmt.Sprintf("%s %s", pair.Gloo.Name, pair.Gloo.Version))
 		} else if pair.MismatchType == checks.PluginMissingReplace || pair.MismatchType == checks.ReplaceMismatch {
-			suggestionMap[checks.ReplaceMismatch] = append(suggestionMap[checks.Require],
+			suggestionMap[checks.ReplaceMismatch] = append(suggestionMap[checks.ReplaceMismatch],
 				fmt.Sprintf("%s %s => %s %s", pair.Gloo.Name, pair.Gloo.Version, pair.Gloo.ReplacementName, pair.Gloo.ReplacementVersion))
 		}
 	}
@@ -80,9 +80,9 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 	// Print out the suggested changes for the `require` section of the go.mod file
 	if requires, ok := suggestionMap[checks.Require]; ok && len(requires) > 0 {
 		_, _ = fmt.Fprintln(suggestionsFile, `require (
-	// You other requirements (remove the ones that collide with the following suggestions)...`)
+	// Add the following entries to the 'require' section of your go.mod file:`)
 		for _, r := range requires {
-			_, _ = fmt.Fprintf(suggestionsFile, "\t%s", r)
+			_, _ = fmt.Fprintf(suggestionsFile, "\t%s\n", r)
 		}
 		_, _ = fmt.Fprintln(suggestionsFile, ")")
 	}
@@ -91,9 +91,9 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 
 	if replacements, ok := suggestionMap[checks.ReplaceMismatch]; ok && len(replacements) > 0 {
 		_, _ = fmt.Fprintln(suggestionsFile, `replace (
-	// You other replacements (remove the ones that collide with the following suggestions)...`)
+	// Add the following entries to the 'replace' section of your go.mod file:`)
 		for _, r := range replacements {
-			_, _ = fmt.Fprintf(suggestionsFile, "\t%s", r)
+			_, _ = fmt.Fprintf(suggestionsFile, "\t%s\n", r)
 		}
 		_, _ = fmt.Fprintln(suggestionsFile, ")")
 	}
