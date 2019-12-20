@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	errorReportFile = "mismatched_dependencies.json"
-	suggestionsFile = "suggestions"
+	errorReportFile     = "mismatched_dependencies.json"
+	suggestionsFileName = "suggestions"
 )
 
 func main() {
@@ -35,40 +35,67 @@ func main() {
 
 	fmt.Println("Plugin and Gloo Enterprise dependencies do not match!")
 
+	// 1. Write the report to stdout
 	reportBytes, err := json.MarshalIndent(nonMatchingDeps, "", "  ")
 	if err != nil {
 		fmt.Printf("Failed to marshall error report to JSON: %s/n", err.Error())
 		os.Exit(1)
 	}
-
 	fmt.Println(string(reportBytes))
 
+	// 2. Write the report to a file
 	fmt.Printf("Writing error report file [%s]\n", errorReportFile)
 	if err := ioutil.WriteFile(errorReportFile, reportBytes, 0644); err != nil {
 		fmt.Printf("Failed to write error report file: %s/n", err.Error())
 	}
 
-	overrideFile, err := os.Create(suggestionsFile)
-	if err != nil {
-		fmt.Printf("Failed to create override file: %s/n", err.Error())
-		os.Exit(1)
+	// 3. Create a file with suggested changes to go.mod
+	if err := createSuggestionsFile(nonMatchingDeps); err != nil {
+		fmt.Printf("Failed to create suggestions file: %s/n", err.Error())
 	}
-	//noinspection GoUnhandledErrorResult
-	defer overrideFile.Close()
-
-	for _, pair := range nonMatchingDeps {
-		switch pair.MismatchType {
-		case checks.Require:
-			_, _ = fmt.Fprintf(overrideFile, "%s %s\n", pair.Gloo.Name, pair.Gloo.Version)
-		case checks.PluginMissingReplace:
-			_, _ = fmt.Fprintf(overrideFile, "%s %s => %s %s\n", pair.Gloo.Name, pair.Gloo.Version, pair.Gloo.ReplacementName, pair.Gloo.ReplacementVersion)
-		case checks.ReplaceMismatch:
-			_, _ = fmt.Fprintf(overrideFile, "%s %s => %s %s\n", pair.Gloo.Name, pair.Gloo.Version, pair.Gloo.ReplacementName, pair.Gloo.ReplacementVersion)
-		}
-		// Nothing to suggest for the PluginExtraReplace errors
-	}
-
-	fmt.Printf("Writing suggestions file [%s], please use its content to update your go.mod file\n", suggestionsFile)
 
 	os.Exit(1)
+}
+
+func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
+	suggestionsFile, err := os.Create(suggestionsFileName)
+	if err != nil {
+		return err
+	}
+	//noinspection GoUnhandledErrorResult
+	defer suggestionsFile.Close()
+
+	fmt.Printf("Writing suggestions file [%s], please use its content to update your go.mod file\n", suggestionsFileName)
+	suggestionMap := map[checks.MismatchType][]string{}
+	for _, pair := range nonMatchingDeps {
+		if pair.MismatchType == checks.Require {
+			suggestionMap[checks.Require] = append(suggestionMap[checks.Require],
+				fmt.Sprintf("%s %s", pair.Gloo.Name, pair.Gloo.Version))
+		} else if pair.MismatchType == checks.PluginMissingReplace || pair.MismatchType == checks.ReplaceMismatch {
+			suggestionMap[checks.ReplaceMismatch] = append(suggestionMap[checks.ReplaceMismatch],
+				fmt.Sprintf("%s %s => %s %s", pair.Gloo.Name, pair.Gloo.Version, pair.Gloo.ReplacementName, pair.Gloo.ReplacementVersion))
+		}
+	}
+
+	// Print out the suggested changes for the `require` section of the go.mod file
+	if requires, ok := suggestionMap[checks.Require]; ok && len(requires) > 0 {
+		_, _ = fmt.Fprintln(suggestionsFile, `require (
+	// Add the following entries to the 'require' section of your go.mod file:`)
+		for _, r := range requires {
+			_, _ = fmt.Fprintf(suggestionsFile, "\t%s\n", r)
+		}
+		_, _ = fmt.Fprintln(suggestionsFile, ")")
+	}
+
+	// Print out the suggested changes for the `replace` section of the go.mod file
+
+	if replacements, ok := suggestionMap[checks.ReplaceMismatch]; ok && len(replacements) > 0 {
+		_, _ = fmt.Fprintln(suggestionsFile, `replace (
+	// Add the following entries to the 'replace' section of your go.mod file:`)
+		for _, r := range replacements {
+			_, _ = fmt.Fprintf(suggestionsFile, "\t%s\n", r)
+		}
+		_, _ = fmt.Fprintln(suggestionsFile, ")")
+	}
+	return nil
 }
