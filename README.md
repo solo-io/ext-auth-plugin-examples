@@ -163,6 +163,8 @@ See [this section](https://docs.solo.io/gloo/latest/security/auth/plugin_auth/#i
 for an example of how to do this.
 
 ## Common Errors
+
+### plugin was built with a different version of package
 You might see an error similar to this one in the logs for the `build-plugins` target:
 ```
 {"level":"error","ts":"2019-12-17T20:59:17.301Z","logger":"verify-plugins","caller":"scripts/verify_plugins.go:54","msg":"Plugin(s) cannot be loaded by Gloo","error":"failed to load plugin: failed to open plugin file: plugin.Open(\"plugins/RequiredHeader\"): plugin was built with a different version of package github.com/golang/protobuf/proto","errorVerbose":"failed to load plugin:\n    github.com/solo-io/go-utils/errors.Wrapf\n        /go/src/github.com/solo-io/go-utils/errors/utils.go:12\n  - failed to open plugin file:\n    github.com/solo-io/go-utils/errors.Wrapf\n        /go/src/github.com/solo-io/go-utils/errors/utils.go:12\n  - plugin.Open(\"plugins/RequiredHeader\"): plugin was built with a different version of package github.com/golang/protobuf/proto","stacktrace":"main.main\n\t/go/src/github.com/solo-io/solo-projects/projects/extauth/scripts/verify_plugins.go:54\nruntime.main\n\t/usr/local/go/src/runtime/proc.go:200"}
@@ -170,6 +172,7 @@ You might see an error similar to this one in the logs for the `build-plugins` t
 
 This is caused by a dependency mismatch. Please run the `compare-deps` target and update your `go.mod` file.
 
+### panic: /debug/requests is already registered
 Another common error is the following one, which can also appear in the logs for the `build-plugins` target :
 
 ```
