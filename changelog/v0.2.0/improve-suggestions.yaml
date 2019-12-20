@@ -1,0 +1,6 @@
+changelog:
+- type: FIX
+  description: >
+    Update the dependency comparison script to output a more user-friendly suggestions file. Also, fetch and wire up the
+    new `dependencies` file published by Gloo Enterprise.
+  issueLink: https://github.com/solo-io/ext-auth-plugin-examples/issues/10
