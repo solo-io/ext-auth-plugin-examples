@@ -18,10 +18,6 @@ The following instructions are assuming you are targeting Gloo Enterprise `v1.x`
 version of Gloo Enterprise, please refer to [this revision](https://github.com/solo-io/ext-auth-plugin-examples/tree/v0.1.1) 
 of this repository.
 
-**Temporary note:** we have temporarily added the `gloo_e_deps_1.0.0-rc8` with the dependency information for Gloo 
-Enterprise `v1.0.0-rc8`, so you are currently locked to this version. We are working on updating Gloo Enterprise to 
-publish this file on each release.
-
 ---
 
 ## Makefile overview
@@ -37,7 +33,7 @@ the information that you will require to replicate its build environment. You ca
 GLOOE_VERSION=<target-glooe-version> make get-glooe-info
 ```
 
-where `GLOOE_VERSION` is the desired Gloo Enterprise version, e.g. `1.0.0-rc8`.
+where `GLOOE_VERSION` is the desired Gloo Enterprise version, e.g. `1.0.0-rc10`.
 
 This will download the following files:
 - `_glooe/build_env`: values to parameterize the plugin build with;
@@ -75,7 +71,12 @@ and publish it to a docker registry that is reachable from the cluster you are r
 ## Example workflow
 First, store the version of Gloo Enterprise you want to target in an environment variable:
 ```
-export GLOOE_VERSION=1.0.0-rc8
+export GLOOE_VERSION=1.0.0-rc10
+```
+
+Now let's fetch the build information for the Gloo Enterprise:
+```
+make GLOOE_VERSION=$GLOOE_VERSION get-glooe-info
 ```
 
 Run `compare-deps` to check if gloo and your plugin have different dependencies:
@@ -84,7 +85,7 @@ Run `compare-deps` to check if gloo and your plugin have different dependencies:
 make GLOOE_VERSION=$GLOOE_VERSION compare-deps
 ```
 
-If there are any mismatched dependencies, A file named `suggestions` will be created. Please use the contents of this 
+If there are any mismatched dependencies, a file named `suggestions` will be created. Please use the contents of this 
 file to update your `go.mod` file. This means replacing existing entries and adding missing entries.
 
 Once you have updated the `go.mod` file, run the `compare-deps` target again. You might need to do this a few times 
