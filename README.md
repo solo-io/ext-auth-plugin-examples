@@ -55,7 +55,7 @@ There are four different types of dependency incompatibilities that the `compare
 
 ##### `Require`
 - Display message: __"Please pin your dependency to the same version as the Gloo one using a [require] clause"__
-- Cause: this error occurs when both your plugin and Gloo require different version of the same module via a `require` 
+- Cause: this error occurs when both your plugin and Gloo require different versions of the same module via a `require` 
 statement.
 - Solution: update your `go.mod` file so that the `require` entry for the module matches the version that Gloo requires.
 
@@ -68,7 +68,7 @@ module dependency.
 
 ##### `ReplaceMismatch`
 - Display message: __"The plugin [replace] clause must match the Gloo one"__
-- Cause: this error occurs when both your plugin and Gloo define different replacements for the same module via `require` 
+- Cause: this error occurs when both your plugin and Gloo define different replacements for the same module via `replace` 
 statements.
 - Solution: update your `go.mod` file so that the `replace` entry for the module matches the Gloo one.
 
@@ -78,8 +78,9 @@ using a [require] clause"__
 - Cause: this error occurs when your plugin defines a replacement for a module via a `replace` statement, but Gloo defines 
 a `require` (but no `replace`) for the same module. This is a problem for the same reasons mentioned in `PluginMissingReplace`.
 - Solution: since there is no way for you to modify the Gloo `go.mod` file, the only solution to this error is to remove 
-the offending `replace` clause from your `go.mod` file. If this is not possible given the dependencies of your plugin, 
-please join [our community Slack](https://slack.solo.io/) and let us know, so we can think about a solution together.
+the offending `replace` entry from your `go.mod` file and add a `require` entry matching the Gloo one. If this is not 
+possible given the dependencies of your plugin, please join [our community Slack](https://slack.solo.io/) and let us know, 
+so we can think about a solution together.
 
 ### build-plugins
 The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
