@@ -50,6 +50,37 @@ about mismatches to stdout and a file.
 In case of failure, this target also generates a file named `suggestions`, which contains entries that you can add to 
 your `go.mod` file to bring your dependencies in sync with the Gloo Enterprise ones.
 
+#### Possible mismatch types
+There are four different types of dependency incompatibilities that the `compare-deps` script can detect.
+
+##### `Require`
+- Display message: __"Please pin your dependency to the same version as the Gloo one using a [require] clause"__
+- Cause: this error occurs when both your plugin and Gloo require different version of the same module via a `require` 
+statement.
+- Solution: update your `go.mod` file so that the `require` entry for the module matches the version that Gloo requires.
+
+##### `PluginMissingReplace`
+- Display message: __"Please add a [replace] clause matching the Gloo one"__
+- Cause: this error occurs when your plugin requires a module via a `require` statement, but Gloo defines a `replace` 
+for the same module. This is a problem, as your plugin will most likely end up with a different version of that shared 
+module dependency.
+- Solution: add a `replace` entry that matches the one in Gloo to your `go.mod` file.
+
+##### `ReplaceMismatch`
+- Display message: __"The plugin [replace] clause must match the Gloo one"__
+- Cause: this error occurs when both your plugin and Gloo define different replacements for the same module via `require` 
+statements.
+- Solution: update your `go.mod` file so that the `replace` entry for the module matches the Gloo one.
+
+##### `PluginExtraReplace`
+- Display message: __"Please remove the [replace] clause and pin your dependency to the same version as the Gloo one 
+using a [require] clause"__
+- Cause: this error occurs when your plugin defines a replacement for a module via a `replace` statement, but Gloo defines 
+a `require` (but no `replace`) for the same module. This is a problem for the same reasons mentioned in `PluginMissingReplace`.
+- Solution: since there is no way for you to modify the Gloo `go.mod` file, the only solution to this error is to remove 
+the offending `replace` clause from your `go.mod` file. If this is not possible given the dependencies of your plugin, 
+please join [our community Slack](https://slack.solo.io/) and let us know, so we can think about a solution together.
+
 ### build-plugins
 The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
 repository (this is done for reproducibility). It uses the information published by Gloo Enterprise to mirror its build 
