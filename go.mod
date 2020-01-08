@@ -8,6 +8,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible // indirect
+	github.com/bxcodec/faker v2.0.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/docker/cli v0.0.0-20191017083524-a8ff7f821017 // indirect
@@ -46,7 +47,7 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/solo-io/ext-auth-plugins v0.1.1
-	github.com/solo-io/go-utils v0.11.1
+	github.com/solo-io/go-utils v0.11.5
 	github.com/solo-io/solo-kit v0.11.13 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.5.0 // indirect

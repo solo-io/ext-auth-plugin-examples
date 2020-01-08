@@ -1,0 +1,4 @@
+changelog:
+- type: NON_USER_FACING
+  description: >
+    Update the default Gloo Enterprise version for which to fetch dependencies to `1.2.1`.
