@@ -479,6 +479,8 @@ github.com/solo-io/go-utils v0.11.1 h1:Y/46OhkxfJZf6oSR95CjQJLyoN2odSsK6FAP5eZ2V
 github.com/solo-io/go-utils v0.11.1/go.mod h1:hRe968ntd1xSro9RYSln5qAjHXGJ+aQ1h8piZvdzc3A=
 github.com/solo-io/go-utils v0.11.2 h1:OvhJLktMdlJj/oqxwvLg3iv3p6QI+zTep0q2UVwGJ2o=
 github.com/solo-io/go-utils v0.11.2/go.mod h1:D5lbi4EyIMq+T5gzjJacu0Ou4Z1brL7g2YYYYgYBJso=
+github.com/solo-io/go-utils v0.11.5 h1:7WPbpDvwB6MUCYtHSr/GznIwTPkTU6Rg/gFDpid8nTM=
+github.com/solo-io/go-utils v0.11.5/go.mod h1:D5lbi4EyIMq+T5gzjJacu0Ou4Z1brL7g2YYYYgYBJso=
 github.com/solo-io/solo-kit v0.6.3/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/solo-io/solo-kit v0.11.13/go.mod h1:oBaQ6tOwuO97u7w+s3TeI08YLHcbiWemInx0XkDfKFw=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
