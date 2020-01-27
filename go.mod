@@ -47,7 +47,7 @@ require (
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
 	github.com/solo-io/ext-auth-plugins v0.1.1
-	github.com/solo-io/go-utils v0.11.5
+	github.com/solo-io/go-utils v0.13.1
 	github.com/solo-io/solo-kit v0.11.13 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.5.0 // indirect
