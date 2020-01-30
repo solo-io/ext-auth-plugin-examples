@@ -4,68 +4,53 @@ go 1.13
 
 require (
 	cloud.google.com/go/pubsub v1.1.0 // indirect
+	contrib.go.opencensus.io/exporter/ocagent v0.5.0 // indirect
+	github.com/Masterminds/semver v1.5.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
-	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avast/retry-go v2.4.3+incompatible // indirect
-	github.com/bxcodec/faker v2.0.1+incompatible // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
 	github.com/docker/cli v0.0.0-20191017083524-a8ff7f821017 // indirect
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
-	github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f // indirect
 	github.com/envoyproxy/go-control-plane v0.9.1
-	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
 	github.com/go-openapi/loads v0.19.4 // indirect
 	github.com/go-openapi/runtime v0.19.5 // indirect
+	github.com/gogo/googleapis v1.3.0 // indirect
 	github.com/google/martian v2.1.1-0.20190517191504-25dcb96d9e51+incompatible // indirect
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/gophercloud/gophercloud v0.6.0 // indirect
 	github.com/gorilla/handlers v1.4.2 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
-	github.com/hashicorp/go-immutable-radix v1.1.0 // indirect
-	github.com/hashicorp/go-msgpack v0.5.5 // indirect
-	github.com/hashicorp/go-retryablehttp v0.6.2 // indirect
-	github.com/hashicorp/go-rootcerts v1.0.1 // indirect
-	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
-	github.com/hashicorp/go-uuid v1.0.2-0.20191001231223-f32f5fe8d6a8 // indirect
-	github.com/hashicorp/memberlist v0.1.4 // indirect
-	github.com/hashicorp/serf v0.8.3 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/mattn/go-colorable v0.1.2 // indirect
-	github.com/mattn/go-runewidth v0.0.6 // indirect
-	github.com/miekg/dns v1.1.15 // indirect
-	github.com/mitchellh/reflectwalk v1.0.1 // indirect
+	github.com/lyft/protoc-gen-validate v0.0.6 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/onsi/ginkgo v1.10.1
+	github.com/olekukonko/tablewriter v0.0.3 // indirect
+	github.com/onsi/ginkgo v1.10.3
 	github.com/onsi/gomega v1.7.1
 	github.com/opencontainers/runc v1.0.0-rc2.0.20190611121236-6cc515888830 // indirect
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/tsdb v0.10.0 // indirect
-	github.com/solo-io/ext-auth-plugins v0.1.1
-	github.com/solo-io/go-utils v0.11.5
-	github.com/solo-io/solo-kit v0.11.13 // indirect
+	github.com/radovskyb/watcher v1.0.7 // indirect
+	github.com/solo-io/ext-auth-plugins v0.1.2
+	github.com/solo-io/go-utils v0.11.7
+	github.com/solo-io/solo-kit v0.11.17 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.5.0 // indirect
-	github.com/ugorji/go v1.1.5-pre // indirect
+	github.com/vmware/govmomi v0.20.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
+	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d // indirect
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect
 	golang.org/x/mod v0.1.1-0.20191209134235-331c550502dd // indirect
-	golang.org/x/sys v0.0.0-20191210023423-ac6580df4449 // indirect
-	golang.org/x/tools v0.0.0-20191212051200-825cb0626375 // indirect
+	golang.org/x/sys v0.0.0-20200113162924-86b910548bc1 // indirect
+	golang.org/x/tools v0.0.0-20200115165105-de0b1760071a // indirect
 	google.golang.org/genproto v0.0.0-20191115221424-83cc0476cb11 // indirect
 	google.golang.org/grpc v1.25.1 // indirect
 	gopkg.in/AlecAivazis/survey.v1 v1.8.7 // indirect
-	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 )
 
 replace (
