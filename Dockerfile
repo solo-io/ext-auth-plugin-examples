@@ -35,7 +35,7 @@ WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
 RUN cp -a vendor/. /go/src/ && rm -rf vendor
 
 # Build plugins with CGO enabled, passing the GC_FLAGS flags
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux GO111MODULE=off go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
 # Run the script to verify that the plugin(s) can be loaded by Gloo
 RUN chmod +x $VERIFY_SCRIPT
