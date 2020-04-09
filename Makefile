@@ -30,8 +30,9 @@ $(GLOOE_DIR)/build_env:
 #----------------------------------------------------------------------------------
 .PHONY: get-plugin-dependencies
 get-plugin-dependencies: go.mod go.sum
-	go mod vendor
+	rm -rf vendor
 	go list -m all > plugin_dependencies
+	go mod vendor
 
 .PHONY: compare-deps
 compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
