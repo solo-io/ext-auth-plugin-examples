@@ -10,7 +10,7 @@ GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.0-beta2
+GLOOE_VERSION ?= 1.3.1
 
 .PHONY: get-glooe-info
 get-glooe-info: $(GLOOE_DIR)/dependencies $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
