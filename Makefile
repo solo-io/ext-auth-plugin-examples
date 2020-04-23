@@ -10,7 +10,7 @@ GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.1
+GLOOE_VERSION ?= 1.3.4
 
 .PHONY: get-glooe-info
 get-glooe-info: $(GLOOE_DIR)/dependencies $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
@@ -24,15 +24,12 @@ $(GLOOE_DIR)/verify-plugins-linux-amd64:
 $(GLOOE_DIR)/build_env:
 	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
 
-
 #----------------------------------------------------------------------------------
 # Compare dependencies against GlooE
 #----------------------------------------------------------------------------------
 .PHONY: get-plugin-dependencies
 get-plugin-dependencies: go.mod go.sum
-	rm -rf vendor
 	go list -m all > plugin_dependencies
-	go mod vendor
 
 .PHONY: compare-deps
 compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies

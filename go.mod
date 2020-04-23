@@ -22,7 +22,7 @@ require (
 	github.com/envoyproxy/go-control-plane v0.9.6-0.20200401235947-be7fefdaf0df
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
 	github.com/go-openapi/runtime v0.19.5 // indirect
-	github.com/golang/mock v1.4.4-0.20200323214412-0b87a54da216 // indirect
+	github.com/golang/mock v1.4.3 // indirect
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/google/martian v2.1.1-0.20190517191504-25dcb96d9e51+incompatible // indirect
@@ -71,6 +71,7 @@ require (
 	github.com/ugorji/go/codec v1.1.5-pre // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
+	github.com/yuin/goldmark v1.1.27 // indirect
 	go.opencensus.io v0.22.2 // indirect
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
@@ -81,7 +82,7 @@ require (
 	golang.org/x/mod v0.2.0 // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
-	golang.org/x/tools v0.0.0-20200328031815-3db5fc6bac03 // indirect
+	golang.org/x/tools v0.0.0-20200422205258-72e4a01eba43 // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	google.golang.org/api v0.14.0 // indirect
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d // indirect
