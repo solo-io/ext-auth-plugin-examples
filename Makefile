@@ -26,6 +26,7 @@ $(GLOOE_DIR)/verify-plugins-linux-amd64:
 
 $(GLOOE_DIR)/build_env:
 	wget -O $@ http://$(STORAGE_HOSTNAME)/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
+
 #----------------------------------------------------------------------------------
 # Compare dependencies against GlooE
 #----------------------------------------------------------------------------------
