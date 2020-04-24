@@ -12,18 +12,20 @@ _ := $(shell mkdir -p $(GLOOE_DIR))
 # Set this variable to the version of GlooE you want to target
 GLOOE_VERSION ?= 1.3.1
 
+# Set this variable to the hostname of your custom (air gapped) storage server
+STORAGE_HOSTNAME ?= storage.googleapis.com
+
 .PHONY: get-glooe-info
 get-glooe-info: $(GLOOE_DIR)/dependencies $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
 
 $(GLOOE_DIR)/dependencies:
-	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/dependencies
+	wget -O $@ http://$(STORAGE_HOSTNAME)/gloo-ee-dependencies/$(GLOOE_VERSION)/dependencies
 
 $(GLOOE_DIR)/verify-plugins-linux-amd64:
-	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
+	wget -O $@ http://$(STORAGE_HOSTNAME)/gloo-ee-dependencies/$(GLOOE_VERSION)/verify-plugins-linux-amd64
 
 $(GLOOE_DIR)/build_env:
-	wget -O $@ http://storage.googleapis.com/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
-
+	wget -O $@ http://$(STORAGE_HOSTNAME)/gloo-ee-dependencies/$(GLOOE_VERSION)/build_env
 
 #----------------------------------------------------------------------------------
 # Compare dependencies against GlooE
