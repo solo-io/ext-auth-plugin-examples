@@ -3,15 +3,15 @@ module github.com/solo-io/ext-auth-plugin-examples
 go 1.14
 
 require (
-    github.com/kylelemons/godebug v1.1.0
 	github.com/karrick/godirwalk v1.14.1
-    github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
 	github.com/containerd/typeurl v0.0.0-20190228175220-2a93cfde8c20
 	github.com/Azure/azure-sdk-for-go v35.0.0+incompatible
 	github.com/aws/aws-sdk-go v1.26.2
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
+	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/opencontainers/runtime-spec v1.0.0
+	github.com/kylelemons/godebug v1.1.0
 	k8s.io/kubernetes v1.17.1
 	cloud.google.com/go v0.46.3 // indirect
 	cloud.google.com/go/pubsub v1.1.0 // indirect
