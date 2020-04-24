@@ -16,7 +16,7 @@ RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument 
 RUN apk add --no-cache gcc musl-dev git
 
 # Copy the repository to the image and set it as the working directory. The GOPATH here is `/go`.
-# The directory chosen here is arbirary and does not influence the plugins compatibility with Gloo.
+# The directory chosen here is arbitrary and does not influence the plugins compatibility with Gloo.
 ADD . /go/src/github.com/solo-io/ext-auth-plugin-examples/
 WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
 
