@@ -13,29 +13,16 @@ ARG VERIFY_SCRIPT
 RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
 
 # Install packages needed for compilation
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev git
 
 # Copy the repository to the image and set it as the working directory. The GOPATH here is `/go`.
-#
-# You have to update the path here to the one corresponding to your repository. This is usually in the form:
-# /go/src/github.com/YOUR_ORGANIZATION/PLUGIN_REPO_NAME
+# The directory chosen here is arbitrary and does not influence the plugins compatibility with Gloo.
 ADD . /go/src/github.com/solo-io/ext-auth-plugin-examples/
 WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
 
-# De-vendor all the dependencies and move them to the GOPATH, so they will be loaded from there.
-# We need this so that the import paths for any library shared between the plugins and Gloo are the same.
-#
-# For example, if we were to vendor the ext-auth-plugin dependency, the ext-auth-server would load the plugin interface
-# as `GLOOE_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`, while the plugin
-# would instead implement `THIS_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`. These would be seen
-# by the go runtime as two different types, causing Gloo to fail.
-# Also, some packages cause problems if loaded more than once. For example, loading `golang.org/x/net/trace` twice
-# causes a panic (see here: https://github.com/golang/go/issues/24137). By flattening the dependencies this way we
-# prevent these sorts of problems.
-RUN cp -a vendor/. /go/src/ && rm -rf vendor
-
 # Build plugins with CGO enabled, passing the GC_FLAGS flags
-RUN CGO_ENABLED=1 GOARCH=amd64 GOOS=linux GO111MODULE=off go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+ENV CGO_ENABLED=1 GOARCH=amd64 GOOS=linux
+RUN go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
 # Run the script to verify that the plugin(s) can be loaded by Gloo
 RUN chmod +x $VERIFY_SCRIPT

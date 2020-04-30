@@ -1,0 +1,8 @@
+changelog:
+- type: FIX
+  description: >
+    Build plugins in _module-aware mode_ instead of in `GOPATH` mode (run go help modules for more info on build modes).
+    This fix, together with the correspondent ones released with Gloo Enterprise `1.3.4` and `1.4.0-beta3`, addresses
+    the compatibility issues that several users have encounter when building plugins for Gloo Enterprise 1.3 releases.
+    Also, update the default Gloo Enterprise version for which to fetch dependencies to `1.3.4`.
+  issueLink: https://github.com/solo-io/solo-projects/issues/1668
