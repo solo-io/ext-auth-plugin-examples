@@ -16,7 +16,23 @@ const (
 	PluginExtraReplace
 	ReplaceMismatch
 	Ko
+
+	Module          = "module"
+	Go              = "go"
+	RequireSection  = "require"
+	ReplaceSection  = "replace"
 )
+
+type Section string
+
+func (s Section) String() string {
+	return string(s)
+}
+
+type ModuleInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
 
 type DependencyInfo struct {
 	Name    string `json:"name"`
@@ -36,11 +52,11 @@ type DependencyInfoPair struct {
 
 func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
 
-	pluginDependencies, err := parseDependenciesFile(pluginsDepsFilePath)
+	pluginDependencies, err := ParseDependenciesFile(pluginsDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
-	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
+	glooDependencies, err := ParseDependenciesFile(glooDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
 	}
@@ -88,7 +104,7 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	return false, Ko, "internal error"
 }
 
-func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
+func ParseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
@@ -137,6 +153,46 @@ func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	return dependencies, scanner.Err()
 }
 
+func ParseModuleInfo(filePath string) (*ModuleInfo, error) {
+	if err := checkFile(filePath); err != nil {
+		return nil, err
+	}
+
+	depFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	//noinspection GoUnhandledErrorResult
+	defer depFile.Close()
+
+	moduleInfo := &ModuleInfo{}
+
+	scanner := bufio.NewScanner(depFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		depInfo := strings.Fields(line)
+		depInfoLen := len(depInfo)
+
+		//skip empty and closing lines
+		if depInfoLen <= 1 || depInfo[0] == "//" {
+			continue
+		}
+
+		switch depInfo[0] {
+		case Module:
+			moduleInfo.Name = depInfo[1]
+			continue
+		case Go:
+			moduleInfo.Version = depInfo[1]
+		case RequireSection, ReplaceSection:
+			// stop the loop , we are passed the info sections
+			break
+		}
+	}
+	return moduleInfo, scanner.Err()
+
+}
 func checkFile(filename string) error {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
