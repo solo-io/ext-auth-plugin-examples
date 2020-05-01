@@ -15,6 +15,7 @@ const (
 	errorReportFile     = "mismatched_dependencies.json"
 	suggestionsFileName = "suggestions"
 	moduleFileName      = "go.mod"
+	backupDirName       = "tmp"
 )
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 
 	var mergedDeps map[string]checks.DependencyInfo
 
-	for i := 1; mergeAttempt == 0 || i <= mergeAttempt; i++ {
+	for i := 1; i <= mergeAttempt; i++ {
 		if nonMatchingDeps, err = checks.CompareDependencies(pluginsDependenciesFilePath, glooDependenciesFilePath); err != nil {
 			fmt.Printf("Failed to compare dependencies: %s/n", err.Error())
 			os.Exit(1)
@@ -58,22 +59,19 @@ func main() {
 			fmt.Printf("Adjusting Plugin dependencies and start comparing again (%d times)\n", i)
 		}
 
-		if mergeAttempt > 0 {
-			if mergedDeps, err = mergeDependencies(pluginsDependenciesFilePath, nonMatchingDeps); err != nil {
-				fmt.Printf("Failed to merge non matching dependencies: %s/n", err.Error())
-				os.Exit(1)
-			}
+		if mergedDeps, err = mergeDependencies(pluginsDependenciesFilePath, nonMatchingDeps); err != nil {
+			fmt.Printf("Failed to merge non matching dependencies: %s/n", err.Error())
+			os.Exit(1)
+		}
 
-			backupModuleFileName := fmt.Sprintf("%s-%d", moduleFileName, i)
-			if err = os.Rename(moduleFileName, backupModuleFileName); err != nil {
-				fmt.Printf("Failed to backup current '%s' file to '%s': %s/n", moduleFileName, backupModuleFileName, err.Error())
-				os.Exit(1)
-			}
+		if err = backupPluginModuleFile(i); err != nil {
+			fmt.Printf("Failed to backup current '%s' file: %s/n", moduleFileName, err.Error())
+			os.Exit(1)
+		}
 
-			if err = createPluginModuleFile(moduleInfo, mergedDeps); err != nil {
-				fmt.Printf("Failed to write new merged '%s' file: %s/n", moduleFileName, err.Error())
-				os.Exit(1)
-			}
+		if err = createPluginModuleFile(moduleInfo, mergedDeps); err != nil {
+			fmt.Printf("Failed to write new merged '%s' file: %s/n", moduleFileName, err.Error())
+			os.Exit(1)
 		}
 	}
 
@@ -96,6 +94,14 @@ func main() {
 		fmt.Printf("Failed to create suggestions file: %s/n", err.Error())
 	}
 	os.Exit(1)
+}
+
+func backupPluginModuleFile(suffix int) error {
+	if err := os.MkdirAll(backupDirName, os.ModePerm); err != nil {
+		return err
+	}
+	backupModuleFileName := fmt.Sprintf("%s/%s-%d", backupDirName, moduleFileName, suffix)
+	return os.Rename(moduleFileName, backupModuleFileName)
 }
 
 func mergeDependencies(pluginsDependenciesFilePath string, nonMatchingDeps []checks.DependencyInfoPair) (map[string]checks.DependencyInfo, error) {
@@ -194,6 +200,7 @@ func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]che
 				fmt.Sprintf("%s %s => %s %s", dep.Name, dep.Version, dep.ReplacementName, dep.ReplacementVersion))
 		}
 	}
+	_, _ = fmt.Fprintln(moduleFile, ")")
 	return nil
 }
 
