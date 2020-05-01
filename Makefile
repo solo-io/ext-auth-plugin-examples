@@ -3,18 +3,54 @@ format:
 	gofmt -w -e plugins scripts
 	goimports -w -e plugins scripts
 
+
 #----------------------------------------------------------------------------------
-# Retrieve GlooE build information
+# Set build variables
 #----------------------------------------------------------------------------------
-GLOOE_DIR := _glooe
-_ := $(shell mkdir -p $(GLOOE_DIR))
+# Set this variable to the name of your plugin
+PLUGIN_NAME ?= sample
+
+# Set this variable to the version of your plugin
+PLUGIN_VERSION ?= 0.0.1
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.4
+GLOOE_VERSION ?= 1.3.1
+
+# Set this variable to the image name and version used for building the plugin
+GO_BUILD_IMAGE ?= golang:1.14.0-buster
 
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
+# Set this variable to the hostname of your custom (air gapped) github server
+GITHUB_HOSTNAME ?=
+
+GLOOE_DIR := _glooe
+_ := $(shell mkdir -p $(GLOOE_DIR))
+
+PLUGIN_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
+PLUGIN_IMAGE := gloo-ext-auth-plugin-$(PLUGIN_NAME):$(PLUGIN_VERSION)
+
+#----------------------------------------------------------------------------------
+# Build an docker image which contains the plugin framework and plugin implementation
+#----------------------------------------------------------------------------------
+.PHONY: build
+build:
+	docker build --no-cache \
+		--build-arg GO_BUILD_IMAGE=$(GO_BUILD_IMAGE) \
+		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
+		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
+		--build-arg GITHUB_PROXY=$(GITHUB_PROXY) \
+		--build-arg PLUGIN_PATH=$(PLUGIN_PATH) \
+		-t $(PLUGIN_IMAGE) .
+
+
+#----------------------------------------------------------------------------------
+# Phony's and rules that should be executed inside a container
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+# Retrieve GlooE build information
+#----------------------------------------------------------------------------------
 .PHONY: get-glooe-info
 get-glooe-info: $(GLOOE_DIR)/dependencies $(GLOOE_DIR)/verify-plugins-linux-amd64 $(GLOOE_DIR)/build_env
 
@@ -34,9 +70,12 @@ $(GLOOE_DIR)/build_env:
 get-plugin-dependencies: go.mod go.sum
 	go list -m all > plugin_dependencies
 
-.PHONY: compare-deps
-compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
-	go run scripts/compare_deps/main.go plugin_dependencies $(GLOOE_DIR)/dependencies
+#----------------------------------------------------------------------------------
+# Compare and merge mon matching dependencies against GlooE
+#----------------------------------------------------------------------------------
+.PHONY: resolve-deps
+resolve-deps: go.mod $(GLOOE_DIR)/dependencies
+	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
 
 #----------------------------------------------------------------------------------
 # Build plugins
@@ -49,12 +88,16 @@ $(shell grep $(1) $(GLOOE_DIR)/build_env | cut -d '=' -f 2-)
 endef
 
 .PHONY: build-plugins
+verify-plugin: build-plugins
+	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
+	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
+
 build-plugins: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache \
-		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
-		--build-arg GC_FLAGS=$(call get_glooe_var,GC_FLAGS) \
-		--build-arg VERIFY_SCRIPT=$(GLOOE_DIR)/verify-plugins-linux-amd64 \
-		.
+	export CGO_ENABLED=1
+	export GOARCH=amd64
+	export GOOS=linux
+	go build -buildmode=plugin -gcflags="$(call get_glooe_var,GC_FLAGS)" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+
 
 .PHONY: build-plugins-for-tests
 build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
@@ -64,4 +107,4 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 
 clean:
 	rm -rf _glooe
-	rm suggestions mismatched_dependencies.json plugin_dependencies
+	rm plugin_dependencies
