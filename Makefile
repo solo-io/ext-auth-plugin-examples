@@ -42,7 +42,7 @@ compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
 # Compare and merged dependencies against GlooE
 #----------------------------------------------------------------------------------
 .PHONY: merge-deps
-MERGE_ATTEMPTS ?= 5
+MERGE_ATTEMPTS ?= 10
 merge-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
 	go run scripts/merge_deps/main.go plugin_dependencies $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
 
