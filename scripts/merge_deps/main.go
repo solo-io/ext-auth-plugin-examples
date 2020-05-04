@@ -44,7 +44,7 @@ func main() {
 
 	var mergedDeps map[string]checks.DependencyInfo
 
-	for i := 1; i <= mergeAttempt; i++ {
+	for i := 1; mergeAttempt > 0 && i <= mergeAttempt; i++ {
 		if nonMatchingDeps, err = checks.CompareDependencies(pluginsDependenciesFilePath, glooDependenciesFilePath); err != nil {
 			fmt.Printf("Failed to compare dependencies: %s/n", err.Error())
 			os.Exit(1)
@@ -162,7 +162,7 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 	return nil
 }
 
-func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]checks.DependencyInfo, ) error {
+func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]checks.DependencyInfo) error {
 	moduleFile, err := os.Create(moduleFileName)
 	if err != nil {
 		return err
