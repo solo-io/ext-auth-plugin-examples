@@ -84,7 +84,7 @@ func main() {
 	fmt.Println(string(reportBytes))
 
 	// 2. Write the report to a file
-	fmt.Printf("Writing error report file [%s]\n", errorReportFile)
+	fmt.Printf("Writing error report file [%s] after %d merge attempts\n", errorReportFile, mergeAttempt)
 	if err := ioutil.WriteFile(errorReportFile, reportBytes, 0644); err != nil {
 		fmt.Printf("Failed to write error report file: %s/n", err.Error())
 	}
