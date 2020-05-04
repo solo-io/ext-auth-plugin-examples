@@ -15,7 +15,7 @@ import (
 const (
 	errorReportFile     = "mismatched_dependencies.json"
 	suggestionsFileName = "suggestions"
-	backupDirName       = "tmp"
+	tempDirName         = "tmp"
 )
 
 func main() {
@@ -74,38 +74,39 @@ func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeA
 		moduleInfo      *checks.ModuleInfo
 		err             error
 	)
+	suggestionModuleFileName := moduleFilePath
 	for i := 1; mergeAttempt > 0 && i <= mergeAttempt; i++ {
-		if moduleInfo, nonMatchingDeps, err = checks.CompareModuleFile(moduleFilePath, glooDependenciesFilePath); err != nil {
+		if moduleInfo, nonMatchingDeps, err = checks.CompareModuleFile(suggestionModuleFileName, glooDependenciesFilePath); err != nil {
 			return nil, errors.Wrapf(err, "failed to compare dependencies")
 		}
 
-		if len(nonMatchingDeps) > 0 {
-			fmt.Println("Plugin and Gloo Enterprise dependencies do not match!")
-			if i < mergeAttempt {
-				fmt.Printf("Merging dependencies and start comparing again (attempt: %d)\n", i)
+		if len(nonMatchingDeps) == 0 {
+			if suggestionModuleFileName != moduleFilePath {
+				if err = os.Rename(suggestionModuleFileName, moduleFilePath); err != nil {
+					return nil, errors.Wrapf(err, "failed to rename temp suggestions module '%s' to current '%s' file\n", suggestionModuleFileName, moduleFilePath)
+				}
 			}
 
-			mergeDependencies(moduleInfo.Dependencies, nonMatchingDeps)
+			return nonMatchingDeps, nil
+		}
+		fmt.Println("Plugin and Gloo Enterprise dependencies do not match!")
+		if i < mergeAttempt {
+			fmt.Printf("Merging dependencies and start comparing again (attempt: %d)\n", i)
+		}
 
-			if err = backupPluginModuleFile(moduleFilePath, i); err != nil {
-				return nil, errors.Wrapf(err, "failed to backup current '%s' file\n", moduleFilePath)
-			}
+		mergeDependencies(moduleInfo.Dependencies, nonMatchingDeps)
 
-			if err = createPluginModuleFile(moduleFilePath, moduleInfo); err != nil {
-				return nil, errors.Wrapf(err, "failed to write new merged '%s' file\n", moduleFilePath)
-			}
+		suggestionFilesDir := filepath.Dir((filepath.Join(tempDirName, moduleFilePath)))
+		if err := os.MkdirAll(suggestionFilesDir, os.ModePerm); err != nil {
+			return nil, errors.Wrapf(err, "failed to create temp suggestions dir '%s' file\n", suggestionFilesDir)
+		}
+
+		suggestionModuleFileName = fmt.Sprintf("%s/%s-%d", suggestionFilesDir, moduleFilePath, i)
+		if err = createPluginModuleFile(suggestionModuleFileName, moduleInfo); err != nil {
+			return nil, errors.Wrapf(err, "failed to write new merged '%s' file\n", moduleFilePath)
 		}
 	}
 	return nonMatchingDeps, err
-}
-
-func backupPluginModuleFile(moduleFileName string, suffix int) error {
-	backupDir := filepath.Dir((filepath.Join(backupDirName, moduleFileName)))
-	if err := os.MkdirAll(backupDir, os.ModePerm); err != nil {
-		return err
-	}
-	backupModuleFileName := fmt.Sprintf("%s/%s-%d", backupDirName, moduleFileName, suffix)
-	return os.Rename(moduleFileName, backupModuleFileName)
 }
 
 func mergeDependencies(pluginDependencies map[string]checks.DependencyInfo, nonMatchingDeps []checks.DependencyInfoPair) {
