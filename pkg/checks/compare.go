@@ -2,6 +2,7 @@ package checks
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -17,10 +18,11 @@ const (
 	ReplaceMismatch
 	Ko
 
-	Module          = "module"
-	Go              = "go"
-	RequireSection  = "require"
-	ReplaceSection  = "replace"
+	None           = ""
+	Module         = "module"
+	Go             = "go"
+	RequireSection = "require"
+	ReplaceSection = "replace"
 )
 
 type Section string
@@ -30,8 +32,9 @@ func (s Section) String() string {
 }
 
 type ModuleInfo struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name         string                    `json:"name"`
+	Version      string                    `json:"version"`
+	Dependencies map[string]DependencyInfo `json:"dependencies"`
 }
 
 type DependencyInfo struct {
@@ -50,17 +53,33 @@ type DependencyInfoPair struct {
 	Gloo         DependencyInfo `json:"glooDependencies"`
 }
 
-func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
-
-	pluginDependencies, err := ParseDependenciesFile(pluginsDepsFilePath)
+func CompareDependencyFile(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
+	pluginDependencies, err := parseDependenciesFile(pluginsDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
-	glooDependencies, err := ParseDependenciesFile(glooDepsFilePath)
+	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
 	}
+	return compareDependencies(pluginDependencies, glooDependencies)
+}
 
+func CompareModuleFile(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []DependencyInfoPair, error) {
+	moduleInfo, err := parseModuleFile(moduleFilePath)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
+	}
+	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
+	}
+
+	nonMatchingDeps, err := compareDependencies(moduleInfo.Dependencies, glooDependencies)
+	return moduleInfo, nonMatchingDeps, err
+}
+
+func compareDependencies(pluginDependencies, glooDependencies map[string]DependencyInfo) ([]DependencyInfoPair, error) {
 	var nonMatchingDeps []DependencyInfoPair
 	for name, depInfo := range pluginDependencies {
 
@@ -104,7 +123,7 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	return false, Ko, "internal error"
 }
 
-func ParseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
+func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
@@ -153,7 +172,7 @@ func ParseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	return dependencies, scanner.Err()
 }
 
-func ParseModuleInfo(filePath string) (*ModuleInfo, error) {
+func parseModuleFile(filePath string) (*ModuleInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
@@ -166,8 +185,10 @@ func ParseModuleInfo(filePath string) (*ModuleInfo, error) {
 	defer depFile.Close()
 
 	moduleInfo := &ModuleInfo{}
+	moduleInfo.Dependencies = map[string]DependencyInfo{}
 
 	scanner := bufio.NewScanner(depFile)
+	section := None
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -176,23 +197,53 @@ func ParseModuleInfo(filePath string) (*ModuleInfo, error) {
 
 		//skip empty and closing lines
 		if depInfoLen <= 1 || depInfo[0] == "//" {
+			if depInfoLen == 1 && depInfo[0] == ")" {
+				//closing section indicator
+				section = None
+			}
 			continue
 		}
 
-		switch depInfo[0] {
-		case Module:
-			moduleInfo.Name = depInfo[1]
-			continue
-		case Go:
-			moduleInfo.Version = depInfo[1]
-		case RequireSection, ReplaceSection:
-			// stop the loop , we are passed the info sections
-			break
+		switch section {
+		case RequireSection:
+			moduleInfo.Dependencies[depInfo[0]] = DependencyInfo{
+				Name:    depInfo[0],
+				Version: depInfo[1],
+			}
+		case ReplaceSection:
+			moduleInfo.Dependencies[depInfo[0]] = DependencyInfo{
+				Name:               depInfo[0],
+				Version:            depInfo[1],
+				Replacement:        true,
+				ReplacementName:    depInfo[3],
+				ReplacementVersion: depInfo[4],
+			}
+		default:
+			switch depInfo[0] {
+			case Module:
+				moduleInfo.Name = depInfo[1]
+				continue
+			case Go:
+				moduleInfo.Version = depInfo[1]
+				continue
+			case RequireSection:
+				section = RequireSection
+				continue
+			case ReplaceSection:
+				section = ReplaceSection
+				continue
+			default:
+				if depInfo[1] == "(" {
+					return nil, fmt.Errorf("unkown section: [%s]. "+
+						"Expected on of 'module | go | require | replace'", line)
+				}
+			}
 		}
+
 	}
 	return moduleInfo, scanner.Err()
-
 }
+
 func checkFile(filename string) error {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {

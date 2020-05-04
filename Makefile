@@ -39,12 +39,12 @@ compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
 	go run scripts/compare_deps/main.go plugin_dependencies $(GLOOE_DIR)/dependencies
 
 #----------------------------------------------------------------------------------
-# Compare and merged dependencies against GlooE
+# Compare and merged mon matching dependencies against GlooE
 #----------------------------------------------------------------------------------
-.PHONY: merge-deps
+.PHONY: resolve-deps
 MERGE_ATTEMPTS ?= 10
-merge-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
-	go run scripts/merge_deps/main.go plugin_dependencies $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
+resolve-deps: go.mod get-plugin-dependencies
+	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
 
 #----------------------------------------------------------------------------------
 # Build plugins

@@ -9,20 +9,18 @@ import (
 )
 
 const (
-	testFileDir       = "test"
-	pluginModFileName = "plugin.txt"
-	glooModFileName   = "gloo.txt"
+	pluginModuleFileName = "plugin.mod"
 )
 
-var _ = Describe("Dependency verification script", func() {
+var _ = Describe("Module Dependency verification script", func() {
 
 	DescribeTable("can detect incompatible dependency requirements",
 		func(scenarioDir string, expectError bool, expectedMismatchedDeps []checks.DependencyInfoPair) {
 
-			plugin := filepath.Join(testFileDir, scenarioDir, pluginModFileName)
+			plugin := filepath.Join(testFileDir, scenarioDir, pluginModuleFileName)
 			gloo := filepath.Join(testFileDir, scenarioDir, glooModFileName)
 
-			mismatchedDeps, err := checks.CompareDependencyFile(plugin, gloo)
+			_, mismatchedDeps, err := checks.CompareModuleFile(plugin, gloo)
 			if expectError {
 				Expect(err).To(HaveOccurred())
 			} else {

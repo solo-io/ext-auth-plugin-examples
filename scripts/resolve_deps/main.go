@@ -7,6 +7,7 @@ import (
 	"github.com/solo-io/ext-auth-plugin-examples/pkg/checks"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 )
@@ -14,22 +15,20 @@ import (
 const (
 	errorReportFile     = "mismatched_dependencies.json"
 	suggestionsFileName = "suggestions"
-	moduleFileName      = "go.mod"
 	backupDirName       = "tmp"
 )
 
 func main() {
 	if len(os.Args) != 4 {
-		fmt.Printf("Must provide 3 arguments: \n\t- plugin go.mod file path \n\t- Glooe go.mod file path\n\t- merge attempts plugin go.mod file\n")
+		fmt.Printf("Must provide 2 arguments: \n\t- Plugin go.mod file path\n\t- Glooe dependencies file path\n\t- merge attempts plugin go.mod file\n")
 		os.Exit(1)
 	}
 
-	pluginsDependenciesFilePath := os.Args[1]
+	pluginsModuleFilePath := os.Args[1]
 	glooDependenciesFilePath := os.Args[2]
 	var (
 		mergeAttempt    int
 		nonMatchingDeps []checks.DependencyInfoPair
-		moduleInfo      *checks.ModuleInfo
 		err             error
 	)
 	if mergeAttempt, err = strconv.Atoi(os.Args[3]); err != nil {
@@ -37,43 +36,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if moduleInfo, err = checks.ParseModuleInfo(moduleFileName); err != nil {
-		fmt.Printf("Failed to read plugin module info: %s/n", err.Error())
+	if nonMatchingDeps, err = resolveDependencies(pluginsModuleFilePath, glooDependenciesFilePath, mergeAttempt); err != nil {
+		fmt.Printf("Failed to resolve dependencies: %s/n", err.Error())
 		os.Exit(1)
 	}
 
-	var mergedDeps map[string]checks.DependencyInfo
-
-	for i := 1; mergeAttempt > 0 && i <= mergeAttempt; i++ {
-		if nonMatchingDeps, err = checks.CompareDependencies(pluginsDependenciesFilePath, glooDependenciesFilePath); err != nil {
-			fmt.Printf("Failed to compare dependencies: %s/n", err.Error())
-			os.Exit(1)
-		}
-
-		if len(nonMatchingDeps) == 0 {
-			fmt.Println("All shared dependencies match")
-			os.Exit(0)
-		}
-		fmt.Println("Plugin and Gloo Enterprise dependencies do not match!")
-		if i < mergeAttempt {
-			fmt.Printf("Adjusting Plugin dependencies and start comparing again (%d times)\n", i)
-		}
-
-		if mergedDeps, err = mergeDependencies(pluginsDependenciesFilePath, nonMatchingDeps); err != nil {
-			fmt.Printf("Failed to merge non matching dependencies: %s/n", err.Error())
-			os.Exit(1)
-		}
-
-		if err = backupPluginModuleFile(i); err != nil {
-			fmt.Printf("Failed to backup current '%s' file: %s/n", moduleFileName, err.Error())
-			os.Exit(1)
-		}
-
-		if err = createPluginModuleFile(moduleInfo, mergedDeps); err != nil {
-			fmt.Printf("Failed to write new merged '%s' file: %s/n", moduleFileName, err.Error())
-			os.Exit(1)
-		}
+	if len(nonMatchingDeps) == 0 {
+		fmt.Println("All shared dependencies match")
+		os.Exit(0)
 	}
+	fmt.Printf("Plugin and Gloo Enterprise dependencies do not match after %d merge attempts!\n", mergeAttempt)
 
 	// 1. Write the report to stdout
 	reportBytes, err := json.MarshalIndent(nonMatchingDeps, "", "  ")
@@ -96,27 +68,50 @@ func main() {
 	os.Exit(1)
 }
 
-func backupPluginModuleFile(suffix int) error {
-	if err := os.MkdirAll(backupDirName, os.ModePerm); err != nil {
+func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeAttempt int) ([]checks.DependencyInfoPair, error) {
+	var (
+		nonMatchingDeps []checks.DependencyInfoPair
+		moduleInfo      *checks.ModuleInfo
+		err             error
+	)
+	for i := 1; mergeAttempt > 0 && i <= mergeAttempt; i++ {
+		if moduleInfo, nonMatchingDeps, err = checks.CompareModuleFile(moduleFilePath, glooDependenciesFilePath); err != nil {
+			return nil, errors.Wrapf(err, "failed to compare dependencies")
+		}
+
+		if len(nonMatchingDeps) > 0 {
+			fmt.Println("Plugin and Gloo Enterprise dependencies do not match!")
+			if i < mergeAttempt {
+				fmt.Printf("Merging dependencies and start comparing again (attempt: %d)\n", i)
+			}
+
+			mergeDependencies(moduleInfo.Dependencies, nonMatchingDeps)
+
+			if err = backupPluginModuleFile(moduleFilePath, i); err != nil {
+				return nil, errors.Wrapf(err, "failed to backup current '%s' file\n", moduleFilePath)
+			}
+
+			if err = createPluginModuleFile(moduleFilePath, moduleInfo); err != nil {
+				return nil, errors.Wrapf(err, "failed to write new merged '%s' file\n", moduleFilePath)
+			}
+		}
+	}
+	return nonMatchingDeps, err
+}
+
+func backupPluginModuleFile(moduleFileName string, suffix int) error {
+	backupDir := filepath.Dir((filepath.Join(backupDirName, moduleFileName)))
+	if err := os.MkdirAll(backupDir, os.ModePerm); err != nil {
 		return err
 	}
 	backupModuleFileName := fmt.Sprintf("%s/%s-%d", backupDirName, moduleFileName, suffix)
 	return os.Rename(moduleFileName, backupModuleFileName)
 }
 
-func mergeDependencies(pluginsDependenciesFilePath string, nonMatchingDeps []checks.DependencyInfoPair) (map[string]checks.DependencyInfo, error) {
-	pluginDependencies, err := checks.ParseDependenciesFile(pluginsDependenciesFilePath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
-	}
+func mergeDependencies(pluginDependencies map[string]checks.DependencyInfo, nonMatchingDeps []checks.DependencyInfoPair) {
 	for _, dep := range nonMatchingDeps {
-		depInfo := pluginDependencies[dep.Plugin.Name]
-		depInfo.Version = dep.Gloo.Version
-		if dep.Gloo.Replacement {
-			depInfo.Version = dep.Gloo.ReplacementVersion
-		}
+		pluginDependencies[dep.Plugin.Name] = dep.Gloo
 	}
-	return pluginDependencies, nil
 }
 
 func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
@@ -162,7 +157,7 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 	return nil
 }
 
-func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]checks.DependencyInfo) error {
+func createPluginModuleFile(moduleFileName string, info *checks.ModuleInfo) error {
 	moduleFile, err := os.Create(moduleFileName)
 	if err != nil {
 		return err
@@ -182,13 +177,15 @@ func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]che
 	// Print out the merged `require` section
 	_, _ = fmt.Fprintln(moduleFile, `require (
 	// Merged 'require' section of the suggestions and your go.mod file:`)
+	dependencies := info.Dependencies
 	keys := getSortedKeys(dependencies)
 	for _, r := range keys {
 		if dep = dependencies[r]; !dep.Replacement {
 			_, _ = fmt.Fprintf(moduleFile, "\t%s\n", fmt.Sprintf("%s %s", dep.Name, dep.Version))
 		}
 	}
-	_, _ = fmt.Fprintln(moduleFile, ")\n")
+	_, _ = fmt.Fprintln(moduleFile, ")")
+	_, _ = fmt.Fprintln(moduleFile, "")
 
 	// Print out the merged `replace` section
 	_, _ = fmt.Fprintln(moduleFile, `replace (
