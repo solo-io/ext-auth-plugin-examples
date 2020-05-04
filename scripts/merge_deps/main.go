@@ -173,10 +173,10 @@ func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]che
 	fmt.Printf("Writing go module file [%s], please use its content to replace your go.mod file\n", moduleFileName)
 
 	// Print out the module
-	_, _ = fmt.Fprintf(moduleFile, "module %s\n", info.Name)
+	_, _ = fmt.Fprintf(moduleFile, "module %s\n\n", info.Name)
 
 	// Print out the version
-	_, _ = fmt.Fprintf(moduleFile, "go %s\n", info.Version)
+	_, _ = fmt.Fprintf(moduleFile, "go %s\n\n", info.Version)
 
 	var dep checks.DependencyInfo
 	// Print out the merged `require` section
@@ -188,7 +188,7 @@ func createPluginModuleFile(info *checks.ModuleInfo, dependencies map[string]che
 			_, _ = fmt.Fprintf(moduleFile, "\t%s\n", fmt.Sprintf("%s %s", dep.Name, dep.Version))
 		}
 	}
-	_, _ = fmt.Fprintln(moduleFile, ")")
+	_, _ = fmt.Fprintln(moduleFile, ")\n")
 
 	// Print out the merged `replace` section
 	_, _ = fmt.Fprintln(moduleFile, `replace (
