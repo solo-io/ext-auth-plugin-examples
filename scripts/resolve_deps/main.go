@@ -94,7 +94,9 @@ func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeA
 			fmt.Printf("Merging dependencies and start comparing again (attempt: %d)\n", i)
 		}
 
-		mergeDependencies(moduleInfo.Dependencies, nonMatchingDeps)
+		for _, dep := range nonMatchingDeps {
+			moduleInfo.Dependencies[dep.Plugin.Name] = dep.Gloo
+		}
 
 		suggestionFilesDir := filepath.Dir((filepath.Join(tempDirName, moduleFilePath)))
 		if err := os.MkdirAll(suggestionFilesDir, os.ModePerm); err != nil {
@@ -107,12 +109,6 @@ func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeA
 		}
 	}
 	return nonMatchingDeps, err
-}
-
-func mergeDependencies(pluginDependencies map[string]checks.DependencyInfo, nonMatchingDeps []checks.DependencyInfoPair) {
-	for _, dep := range nonMatchingDeps {
-		pluginDependencies[dep.Plugin.Name] = dep.Gloo
-	}
 }
 
 func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
