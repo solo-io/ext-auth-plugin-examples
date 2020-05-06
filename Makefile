@@ -43,7 +43,7 @@ compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
 #----------------------------------------------------------------------------------
 .PHONY: resolve-deps
 MERGE_ATTEMPTS ?= 10
-resolve-deps: go.mod get-plugin-dependencies
+resolve-deps: go.mod $(GLOOE_DIR)/dependencies
 	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
 
 #----------------------------------------------------------------------------------
