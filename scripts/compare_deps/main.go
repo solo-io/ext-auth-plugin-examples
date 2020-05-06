@@ -22,7 +22,7 @@ func main() {
 	pluginsDependenciesFilePath := os.Args[1]
 	glooDependenciesFilePath := os.Args[2]
 
-	nonMatchingDeps, err := checks.CompareDependencyFile(pluginsDependenciesFilePath, glooDependenciesFilePath)
+	nonMatchingDeps, err := checks.CompareDependencies(pluginsDependenciesFilePath, glooDependenciesFilePath)
 	if err != nil {
 		fmt.Printf("Failed to compare dependencies: %s/n", err.Error())
 		os.Exit(1)

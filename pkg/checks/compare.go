@@ -2,7 +2,6 @@ package checks
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
@@ -17,25 +16,7 @@ const (
 	PluginExtraReplace
 	ReplaceMismatch
 	Ko
-
-	None           = ""
-	Module         = "module"
-	Go             = "go"
-	RequireSection = "require"
-	ReplaceSection = "replace"
 )
-
-type Section string
-
-func (s Section) String() string {
-	return string(s)
-}
-
-type ModuleInfo struct {
-	Name         string                    `json:"name"`
-	Version      string                    `json:"version"`
-	Dependencies map[string]DependencyInfo `json:"dependencies"`
-}
 
 type DependencyInfo struct {
 	Name    string `json:"name"`
@@ -53,33 +34,23 @@ type DependencyInfoPair struct {
 	Gloo         DependencyInfo `json:"glooDependencies"`
 }
 
-func CompareDependencyFile(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
-	pluginDependencies, err := parseDependenciesFile(pluginsDepsFilePath)
+func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
+
+	pluginDependencies, err := parseDependenciesFile_Deprecated(pluginsDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
-	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
+	glooDependencies, err := parseDependenciesFile_Deprecated(glooDepsFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
 	}
-	return compareDependencies(pluginDependencies, glooDependencies)
+
+	nonMatchingDeps := compareDependencies(pluginDependencies, glooDependencies)
+
+	return nonMatchingDeps, nil
 }
 
-func CompareModuleFile(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []DependencyInfoPair, error) {
-	moduleInfo, err := parseModuleFile(moduleFilePath)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
-	}
-	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
-	}
-
-	nonMatchingDeps, err := compareDependencies(moduleInfo.Dependencies, glooDependencies)
-	return moduleInfo, nonMatchingDeps, err
-}
-
-func compareDependencies(pluginDependencies, glooDependencies map[string]DependencyInfo) ([]DependencyInfoPair, error) {
+func compareDependencies(pluginDependencies map[string]DependencyInfo, glooDependencies map[string]DependencyInfo) []DependencyInfoPair {
 	var nonMatchingDeps []DependencyInfoPair
 	for name, depInfo := range pluginDependencies {
 
@@ -95,8 +66,7 @@ func compareDependencies(pluginDependencies, glooDependencies map[string]Depende
 			}
 		}
 	}
-
-	return nonMatchingDeps, nil
+	return nonMatchingDeps
 }
 
 func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
@@ -123,7 +93,7 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	return false, Ko, "internal error"
 }
 
-func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
+func parseDependenciesFile_Deprecated(filePath string) (map[string]DependencyInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
@@ -170,87 +140,4 @@ func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 		}
 	}
 	return dependencies, scanner.Err()
-}
-
-func parseModuleFile(filePath string) (*ModuleInfo, error) {
-	if err := checkFile(filePath); err != nil {
-		return nil, err
-	}
-
-	depFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	//noinspection GoUnhandledErrorResult
-	defer depFile.Close()
-
-	moduleInfo := &ModuleInfo{}
-	moduleInfo.Dependencies = map[string]DependencyInfo{}
-
-	scanner := bufio.NewScanner(depFile)
-	section := None
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		depInfo := strings.Fields(line)
-		depInfoLen := len(depInfo)
-
-		//skip empty and closing lines
-		if depInfoLen <= 1 || depInfo[0] == "//" {
-			if depInfoLen == 1 && depInfo[0] == ")" {
-				//closing section indicator
-				section = None
-			}
-			continue
-		}
-
-		switch section {
-		case RequireSection:
-			moduleInfo.Dependencies[depInfo[0]] = DependencyInfo{
-				Name:    depInfo[0],
-				Version: depInfo[1],
-			}
-		case ReplaceSection:
-			moduleInfo.Dependencies[depInfo[0]] = DependencyInfo{
-				Name:               depInfo[0],
-				Version:            depInfo[1],
-				Replacement:        true,
-				ReplacementName:    depInfo[3],
-				ReplacementVersion: depInfo[4],
-			}
-		default:
-			switch depInfo[0] {
-			case Module:
-				moduleInfo.Name = depInfo[1]
-				continue
-			case Go:
-				moduleInfo.Version = depInfo[1]
-				continue
-			case RequireSection:
-				section = RequireSection
-				continue
-			case ReplaceSection:
-				section = ReplaceSection
-				continue
-			default:
-				if depInfo[1] == "(" {
-					return nil, fmt.Errorf("unkown section: [%s]. "+
-						"Expected on of 'module | go | require | replace'", line)
-				}
-			}
-		}
-
-	}
-	return moduleInfo, scanner.Err()
-}
-
-func checkFile(filename string) error {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return errors.New(filename + " file not found")
-	}
-	if info.IsDir() {
-		return errors.New(filename + " is a directory")
-	}
-	return nil
 }

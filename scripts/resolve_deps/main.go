@@ -71,13 +71,13 @@ func main() {
 func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeAttempt int) ([]checks.DependencyInfoPair, error) {
 	var (
 		nonMatchingDeps []checks.DependencyInfoPair
-		moduleInfo      *checks.ModuleInfo
+		mergedModule    *checks.ModuleInfo
 		err             error
 	)
 	suggestionModuleFileName := moduleFilePath
 	for i := 1; mergeAttempt > 0 && i <= mergeAttempt; i++ {
-		if moduleInfo, nonMatchingDeps, err = checks.CompareModuleFile(suggestionModuleFileName, glooDependenciesFilePath); err != nil {
-			return nil, errors.Wrapf(err, "failed to compare dependencies")
+		if mergedModule, nonMatchingDeps, err = checks.MergeModuleFiles(suggestionModuleFileName, glooDependenciesFilePath); err != nil {
+			return nil, errors.Wrapf(err, "failed to merge dependencies")
 		}
 
 		if len(nonMatchingDeps) == 0 {
@@ -94,17 +94,13 @@ func resolveDependencies(moduleFilePath, glooDependenciesFilePath string, mergeA
 			fmt.Printf("Merging dependencies and start comparing again (attempt: %d)\n", i)
 		}
 
-		for _, dep := range nonMatchingDeps {
-			moduleInfo.Dependencies[dep.Plugin.Name] = dep.Gloo
-		}
-
 		suggestionFilesDir := filepath.Dir((filepath.Join(tempDirName, moduleFilePath)))
 		if err := os.MkdirAll(suggestionFilesDir, os.ModePerm); err != nil {
 			return nil, errors.Wrapf(err, "failed to create temp suggestions dir '%s' file\n", suggestionFilesDir)
 		}
 
 		suggestionModuleFileName = fmt.Sprintf("%s/%s-%d", suggestionFilesDir, moduleFilePath, i)
-		if err = createPluginModuleFile(suggestionModuleFileName, moduleInfo); err != nil {
+		if err = createPluginModuleFile(suggestionModuleFileName, mergedModule); err != nil {
 			return nil, errors.Wrapf(err, "failed to write new merged '%s' file\n", moduleFilePath)
 		}
 	}
@@ -154,7 +150,7 @@ func createSuggestionsFile(nonMatchingDeps []checks.DependencyInfoPair) error {
 	return nil
 }
 
-func createPluginModuleFile(moduleFileName string, info *checks.ModuleInfo) error {
+func createPluginModuleFile(moduleFileName string, module *checks.ModuleInfo) error {
 	moduleFile, err := os.Create(moduleFileName)
 	if err != nil {
 		return err
@@ -165,40 +161,37 @@ func createPluginModuleFile(moduleFileName string, info *checks.ModuleInfo) erro
 	fmt.Printf("Writing go module file [%s], please use its content to replace your go.mod file\n", moduleFileName)
 
 	// Print out the module
-	_, _ = fmt.Fprintf(moduleFile, "module %s\n\n", info.Name)
+	_, _ = fmt.Fprintf(moduleFile, "module %s\n\n", module.Name)
 
 	// Print out the version
-	_, _ = fmt.Fprintf(moduleFile, "go %s\n\n", info.Version)
+	_, _ = fmt.Fprintf(moduleFile, "go %s\n\n", module.Version)
 
-	var dep checks.DependencyInfo
 	// Print out the merged `require` section
-	_, _ = fmt.Fprintln(moduleFile, `require (
+	if requires := module.Require; len(requires) > 0 {
+		_, _ = fmt.Fprintln(moduleFile, `require (
 	// Merged 'require' section of the suggestions and your go.mod file:`)
-	dependencies := info.Dependencies
-	keys := getSortedKeys(dependencies)
-	for _, r := range keys {
-		if dep = dependencies[r]; !dep.Replacement {
-			_, _ = fmt.Fprintf(moduleFile, "\t%s\n", fmt.Sprintf("%s %s", dep.Name, dep.Version))
+		keys := getSortedKeys(requires)
+		for _, r := range keys {
+			_, _ = fmt.Fprintf(moduleFile, "\t%s\n", requires[r])
 		}
+		_, _ = fmt.Fprintln(moduleFile, ")")
+		_, _ = fmt.Fprintln(moduleFile, "")
 	}
-	_, _ = fmt.Fprintln(moduleFile, ")")
-	_, _ = fmt.Fprintln(moduleFile, "")
 
 	// Print out the merged `replace` section
-	_, _ = fmt.Fprintln(moduleFile, `replace (
+	if replaces := module.Replace; len(replaces) > 0 {
+		_, _ = fmt.Fprintln(moduleFile, `replace (
 	// Merged 'replace' section of the suggestions and your go.mod file:`)
-	keys = getSortedKeys(dependencies)
-	for _, r := range keys {
-		if dep = dependencies[r]; dep.Replacement {
-			_, _ = fmt.Fprintf(moduleFile, "\t%s\n",
-				fmt.Sprintf("%s %s => %s %s", dep.Name, dep.Version, dep.ReplacementName, dep.ReplacementVersion))
+		keys := getSortedKeys(replaces)
+		for _, r := range keys {
+			_, _ = fmt.Fprintf(moduleFile, "\t%s\n", replaces[r])
 		}
+		_, _ = fmt.Fprintln(moduleFile, ")")
 	}
-	_, _ = fmt.Fprintln(moduleFile, ")")
 	return nil
 }
 
-func getSortedKeys(m map[string]checks.DependencyInfo) []string {
+func getSortedKeys(m map[string]string) []string {
 	var keys []string
 	for k := range m {
 		keys = append(keys, k)
