@@ -118,11 +118,8 @@ var _ = Describe("MergeModuleFiles script", func() {
 					"github.com/solo-io/bar": "github.com/solo-io/bar v1.23.3",
 				}},
 		),
-		Entry("The plugin replaces a dep which has a different version of the require dep", "mismatch_replace_2", false,
+		Entry("Gloo require name and version takes precedence if the plugin replaces a require dep", "mismatch_replace_2", false,
 			&ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
-				Replace: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3 => github.com/solo-io/bar v1.2.4",
-				},
 				Require: map[string]string{
 					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
 					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.20",

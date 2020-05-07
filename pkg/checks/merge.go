@@ -39,16 +39,40 @@ func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []D
 		return nil, nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
 	}
 
-	merged := &ModuleInfo{Name: pluginModule.Name, Version: pluginModule.Version,
-		Require: mergeMaps(pluginModule.Require, glooModule.Require),
-		Replace: mergeMaps(pluginModule.Replace, glooModule.Replace),
-	}
+	merged := mergeModules(pluginModule, glooModule)
 	pluginDeps, err := toDependencyInfo(merged)
 	gloonDeps, err := toDependencyInfo(glooModule)
 
 	nonMatchingDeps := compareDependencies(pluginDeps, gloonDeps)
 
 	return merged, nonMatchingDeps, err
+}
+
+func mergeModules(pluginModule, glooModule *ModuleInfo) *ModuleInfo {
+	// create new module with merged require and replace entries
+	merged := &ModuleInfo{Name: pluginModule.Name, Version: pluginModule.Version,
+		Require: mergeMaps(pluginModule.Require, glooModule.Require),
+		Replace: mergeMaps(pluginModule.Replace, glooModule.Replace),
+	}
+
+	// gloo require entries are not allowed to be replaced
+	for k := range pluginModule.Replace {
+		if _, exists := glooModule.Require[k]; exists {
+			delete(merged.Replace, k)
+			continue
+		}
+
+	}
+
+	//set empty maps to nil
+	if len(merged.Replace) == 0 {
+		merged.Replace = nil
+	}
+	if len(merged.Require) == 0 {
+		merged.Require = nil
+	}
+
+	return merged
 }
 
 func parseDependenciesFile(filePath string) (*ModuleInfo, error) {
