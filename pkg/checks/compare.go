@@ -80,8 +80,8 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 		}
 	case glooDep.Replacement == true && pluginDep.Replacement == false:
 		return false, PluginMissingReplace, "Please add a [replace] clause matching the Gloo one"
-	case glooDep.Replacement == false && pluginDep.Replacement == true:
-		return false, PluginExtraReplace, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
+	//case glooDep.Replacement == false && pluginDep.Replacement == true:
+	//	return false, PluginExtraReplace, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
 	case glooDep.Replacement && pluginDep.Replacement:
 		if glooDep.ReplacementName == pluginDep.ReplacementName && glooDep.ReplacementVersion == pluginDep.ReplacementVersion {
 			return true, Ok, ""
