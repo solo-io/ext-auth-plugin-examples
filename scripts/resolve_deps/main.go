@@ -6,28 +6,21 @@ import (
 	"github.com/solo-io/ext-auth-plugin-examples/pkg/checks"
 	"os"
 	"sort"
-	"strconv"
 )
 
 func main() {
-	if len(os.Args) != 4 {
-		fmt.Printf("Must provide 2 arguments: \n\t- Plugin go.mod file path\n\t- Glooe dependencies file path\n\t- merge attempts plugin go.mod file\n")
+	if len(os.Args) != 3 {
+		fmt.Printf("Must provide 2 arguments: \n\t- Plugin go.mod file path\n\t- Glooe dependencies file path\n")
 		os.Exit(1)
 	}
 
 	pluginsModuleFilePath := os.Args[1]
 	glooDependenciesFilePath := os.Args[2]
 	var (
-		mergeAttempt    int
 		nonMatchingDeps []checks.DependencyInfoPair
 		mergedModule    *checks.ModuleInfo
 		err             error
 	)
-	if mergeAttempt, err = strconv.Atoi(os.Args[3]); err != nil {
-		fmt.Printf("Provided 3th arguments is not a number\n")
-		os.Exit(1)
-	}
-
 	if mergedModule, nonMatchingDeps, err = checks.MergeModuleFiles(pluginsModuleFilePath, glooDependenciesFilePath); err != nil {
 		fmt.Printf("Failed to resolve dependencies: %s\n", err.Error())
 		os.Exit(1)
@@ -42,7 +35,7 @@ func main() {
 		}
 		os.Exit(0)
 	}
-	fmt.Printf("Plugin and Gloo Enterprise dependencies do not match after %d merge attempts!\n", mergeAttempt)
+	fmt.Println("Plugin and Gloo Enterprise dependencies do not match after merge")
 
 	// 1. Write the report to stdout
 	reportBytes, err := json.MarshalIndent(nonMatchingDeps, "", "  ")
