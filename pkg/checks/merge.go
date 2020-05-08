@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -56,7 +55,7 @@ func mergeModules(pluginModule, glooModule *ModuleInfo) *ModuleInfo {
 		Replace: copyMap(pluginModule.Replace),
 	}
 
-	for name, _ := range pluginModule.Require {
+	for name := range pluginModule.Require {
 		// pin dependency to the same version as the Gloo one using a [require] clause
 		if glooEquivalent, ok := glooModule.Require[name]; ok {
 			merged.Require[name] = glooEquivalent
@@ -69,15 +68,12 @@ func mergeModules(pluginModule, glooModule *ModuleInfo) *ModuleInfo {
 		}
 	}
 
-	for name, _ := range pluginModule.Replace {
+	for name := range pluginModule.Replace {
 		// remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause
 		if glooEquivalent, ok := glooModule.Require[name]; ok {
 			merged.Require[name] = glooEquivalent
 			// gloo require entries are not allowed to be replaced
-			// but by using this hack, we are able to support forked repo's
-			if isSet, _ := strconv.ParseBool(os.Getenv(isForked)); !isSet {
-				delete(merged.Replace, name)
-			}
+			delete(merged.Replace, name)
 			continue
 		}
 		// update [replace] clause matching the Gloo one
@@ -269,27 +265,6 @@ func copyMap(m map[string]string) map[string]string {
 	}
 
 	return cp
-}
-
-func mergeMaps(base, overrides map[string]string) map[string]string {
-	if base == nil && overrides == nil {
-		return nil
-	}
-	var m map[string]string
-	if base != nil {
-		m = copyMap(base)
-		if overrides != nil {
-			for k, _ := range base {
-				if override, ok := overrides[k]; ok {
-					m[k] = override
-				}
-			}
-		}
-	} else {
-		m = copyMap(overrides)
-	}
-
-	return m
 }
 
 func checkFile(filename string) error {
