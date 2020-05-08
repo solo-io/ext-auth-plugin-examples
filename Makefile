@@ -34,10 +34,6 @@ $(GLOOE_DIR)/build_env:
 get-plugin-dependencies: go.mod go.sum
 	go list -m all > plugin_dependencies
 
-.PHONY: compare-deps
-compare-deps: get-plugin-dependencies $(GLOOE_DIR)/dependencies
-	go run scripts/compare_deps/main.go plugin_dependencies $(GLOOE_DIR)/dependencies
-
 #----------------------------------------------------------------------------------
 # Compare and merged mon matching dependencies against GlooE
 #----------------------------------------------------------------------------------
