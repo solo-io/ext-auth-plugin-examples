@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -51,17 +52,39 @@ func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []D
 func mergeModules(pluginModule, glooModule *ModuleInfo) *ModuleInfo {
 	// create new module with merged require and replace entries
 	merged := &ModuleInfo{Name: pluginModule.Name, Version: pluginModule.Version,
-		Require: mergeMaps(pluginModule.Require, glooModule.Require),
-		Replace: mergeMaps(pluginModule.Replace, glooModule.Replace),
+		Require: copyMap(pluginModule.Require),
+		Replace: copyMap(pluginModule.Replace),
 	}
 
-	// gloo require entries are not allowed to be replaced
-	for k := range pluginModule.Replace {
-		if _, exists := glooModule.Require[k]; exists {
-			delete(merged.Replace, k)
+	for name, _ := range pluginModule.Require {
+		// pin dependency to the same version as the Gloo one using a [require] clause
+		if glooEquivalent, ok := glooModule.Require[name]; ok {
+			merged.Require[name] = glooEquivalent
 			continue
 		}
+		// add [replace] clause matching the Gloo one
+		if glooEquivalent, ok := glooModule.Replace[name]; ok {
+			merged.Replace[name] = glooEquivalent
+			continue
+		}
+	}
 
+	for name, _ := range pluginModule.Replace {
+		// remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause
+		if glooEquivalent, ok := glooModule.Require[name]; ok {
+			merged.Require[name] = glooEquivalent
+			// gloo require entries are not allowed to be replaced
+			// but by using this hack, we are able to support forked repo's
+			if isSet, _ := strconv.ParseBool(os.Getenv(isForked)); !isSet {
+				delete(merged.Replace, name)
+			}
+			continue
+		}
+		// update [replace] clause matching the Gloo one
+		if glooEquivalent, ok := glooModule.Replace[name]; ok {
+			merged.Replace[name] = glooEquivalent
+			continue
+		}
 	}
 
 	//set empty maps to nil
@@ -237,9 +260,9 @@ func toDependencyInfo(module *ModuleInfo) (map[string]DependencyInfo, error) {
 }
 
 func copyMap(m map[string]string) map[string]string {
-	if m == nil {
-		return nil
-	}
+	//if m == nil {
+	//	return nil
+	//}
 	cp := make(map[string]string)
 	for k, v := range m {
 		cp[k] = v
@@ -256,8 +279,10 @@ func mergeMaps(base, overrides map[string]string) map[string]string {
 	if base != nil {
 		m = copyMap(base)
 		if overrides != nil {
-			for k, v := range overrides {
-				m[k] = v
+			for k, _ := range base {
+				if override, ok := overrides[k]; ok {
+					m[k] = override
+				}
 			}
 		}
 	} else {

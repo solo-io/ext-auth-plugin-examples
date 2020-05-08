@@ -100,10 +100,17 @@ var _ = Describe("MergeModuleFiles script", func() {
 				Expect(moduleInfo).To(BeEquivalentTo(expectedModuleInfo))
 			}
 		},
-		Entry("Gloo require version takes precedence if both the plugin and Gloo require a dep and the version do not match", "success", false,
+		Entry("Module has compatible deps for Gloo 1.3.0", "success_gloo_130", false,
 			&ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
 				Require: map[string]string{
 					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3",
+					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
+					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
+				}},
+		),
+		Entry("Gloo require version takes precedence if both the plugin and Gloo require a dep and the version do not match", "success", false,
+			&ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
+				Require: map[string]string{
 					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
 					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
 				}},
