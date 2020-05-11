@@ -1,4 +1,9 @@
 changelog:
+- type: BREAKING_CHANGE
+  description: >
+    From now, fetching the go dependencies is also done in the docker container where we also build the plugin.
+    This prevents package incompatibilities when the version of go in the local machine is different than the one that we use in the docker file.
+  issueLink: https://github.com/solo-io/ext-auth-plugin-examples/issues/16
 - type: NEW_FEATURE
   description: >
     The `resolve-deps` script will merge your plugin dependencies with the gloo dependencies and verify if it's compatible with the targeted GlooE version.
