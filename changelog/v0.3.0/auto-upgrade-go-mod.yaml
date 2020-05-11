@@ -1,5 +1,5 @@
 changelog:
-- type: BREAKING_CHANGE
+- type: NEW_FEATURE
   description: >
     The `resolve-deps` script will merge your plugin dependencies with the gloo dependencies and verify if it's compatible with the targeted GlooE version.
     If there are mismatched dependencies, use the information of outputted mismatched content to update your `go.mod` file.
