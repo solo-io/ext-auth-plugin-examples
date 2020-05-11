@@ -25,9 +25,6 @@ RUN_IMAGE ?= alpine:3.11
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
-# Set this variable to the hostname of your custom (air gapped) github server
-GITHUB_HOSTNAME ?=
-
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
@@ -41,9 +38,9 @@ PLUGIN_IMAGE := gloo-ext-auth-plugin-$(PLUGIN_NAME):$(PLUGIN_VERSION)
 build:
 	docker build --no-cache \
 		--build-arg GO_BUILD_IMAGE=$(GO_BUILD_IMAGE) \
+		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
-		--build-arg GITHUB_PROXY=$(GITHUB_PROXY) \
 		--build-arg PLUGIN_PATH=$(PLUGIN_PATH) \
 		-t $(PLUGIN_IMAGE) .
 
