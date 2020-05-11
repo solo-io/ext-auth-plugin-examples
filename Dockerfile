@@ -2,11 +2,10 @@
 # Use this stage to add certificates and setting proxies
 # All ARGs need to be set via the docker `--build-arg` flags.
 ARG GO_BUILD_IMAGE
+ARG RUN_IMAGE
 FROM $GO_BUILD_IMAGE AS build-env
 #ENV GOPROXY=
 
-# Download the specified version of the extauth plugin framework and
-# compose plugin code by merging the implementation with the framework code
 # This stage is parametrized to replicate the same environment Gloo Enterprise was built in.
 # All ARGs need to be set via the docker `--build-arg` flags.
 FROM build-env as build
@@ -31,7 +30,7 @@ RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv g
 RUN make build-plugins || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
-FROM alpine:3.10.1
+FROM $RUN_IMAGE
 ARG PLUGIN_PATH
 
 # Copy compiled plugin file from previous stage
