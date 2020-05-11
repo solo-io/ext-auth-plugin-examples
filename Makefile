@@ -107,4 +107,4 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 
 clean:
 	rm -rf _glooe
-	rm plugin_dependencies
+	rm -f dependencies
