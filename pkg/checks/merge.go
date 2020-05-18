@@ -36,7 +36,7 @@ func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []D
 	}
 	glooModule, err := parseDependenciesFile(glooDepsFilePath)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
+		return nil, nil, errors.Wrapf(err, "failed to parse Gloo Enterprise go.mod file")
 	}
 
 	merged := mergeModules(pluginModule, glooModule)

@@ -75,7 +75,7 @@ get-plugin-dependencies: go.mod go.sum
 #----------------------------------------------------------------------------------
 .PHONY: resolve-deps
 resolve-deps: go.mod $(GLOOE_DIR)/dependencies
-	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies $(MERGE_ATTEMPTS)
+	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies
 
 #----------------------------------------------------------------------------------
 # Build plugins
