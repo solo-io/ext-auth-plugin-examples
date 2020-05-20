@@ -93,7 +93,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/yuin/goldmark v1.1.27 // indirect
-	go.opencensus.io v0.22.2 // indirect
+	go.opencensus.io v0.22.2
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4 // indirect

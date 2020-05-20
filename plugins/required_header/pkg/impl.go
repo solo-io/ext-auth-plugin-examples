@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+
 	envoycorev2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	envoyauthv2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2"
 	"github.com/solo-io/ext-auth-plugins/api"
@@ -17,6 +20,14 @@ var (
 		return errors.New(fmt.Sprintf("unexpected config type %T", typ))
 	}
 	_ api.ExtAuthPlugin = new(RequiredHeaderPlugin)
+
+	reqTotal     = stats.Int64("req_total", "Count of requests", "1")
+	reqTotalView = &view.View{
+		Name:        "demo/req_total",
+		Measure:     reqTotal,
+		Description: "Total count of requests",
+		Aggregation: view.Count(),
+	}
 )
 
 type RequiredHeaderPlugin struct{}
@@ -58,12 +69,17 @@ type RequiredHeaderAuthService struct {
 }
 
 // You can use the provided context to perform operations that are bound to the services lifecycle.
-func (c *RequiredHeaderAuthService) Start(context.Context) error {
-	// no-op
+func (c *RequiredHeaderAuthService) Start(ctx context.Context) error {
+	if err := view.Register(reqTotalView); err != nil {
+		logger(ctx).With(zap.Error(err)).Error("failed to register view")
+	}
+
 	return nil
 }
 
 func (c *RequiredHeaderAuthService) Authorize(ctx context.Context, request *api.AuthorizationRequest) (*api.AuthorizationResponse, error) {
+	stats.Record(ctx, reqTotal.M(1))
+
 	for key, value := range request.CheckRequest.GetAttributes().GetRequest().GetHttp().GetHeaders() {
 		if key == c.RequiredHeader {
 			logger(ctx).Infow("Found required header, checking value.", "header", key, "value", value)
