@@ -3,7 +3,7 @@ module github.com/solo-io/ext-auth-plugin-examples
 go 1.14
 
 require (
-    github.com/envoyproxy/go-control-plane v0.9.1
+	github.com/envoyproxy/go-control-plane v0.9.1
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
 	github.com/pkg/errors v0.9.1
