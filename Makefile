@@ -13,7 +13,7 @@ PLUGIN_NAME ?= sample
 PLUGIN_VERSION ?= 0.0.1
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.1
+GLOOE_VERSION ?= 1.3.4
 
 # Set this variable to the base image name for the container that will have the compiled plugin
 RUN_IMAGE ?= alpine:3.11
@@ -80,7 +80,7 @@ build-plugin: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
 
 .PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
-	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$(call get_glooe_var,GC_FLAGS)" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
 .PHONY: build-plugins-for-tests
 build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
