@@ -4,7 +4,6 @@
 ARG GO_BUILD_IMAGE
 ARG RUN_IMAGE
 FROM $GO_BUILD_IMAGE AS build-env
-#ENV GOPROXY=
 
 # This stage is parametrized to replicate the same environment Gloo Enterprise was built in.
 # All ARGs need to be set via the docker `--build-arg` flags.
@@ -20,7 +19,6 @@ ENV CGO_ENABLED=1
 WORKDIR $PLUGIN_PATH
 # Resolve dependencies and ensure dependency version usage
 COPY Makefile go.mod go.sum ./
-#COPY go.mod_test ./go.mod
 COPY pkg ./pkg
 COPY scripts ./scripts
 COPY plugins ./plugins
