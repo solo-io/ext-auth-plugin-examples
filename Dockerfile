@@ -22,9 +22,10 @@ COPY Makefile go.mod go.sum ./
 COPY pkg ./pkg
 COPY scripts ./scripts
 COPY plugins ./plugins
+
 RUN make get-glooe-info resolve-deps
 RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv go.new go.mod
-RUN make build-plugins || { echo "Used module:" | cat - go.mod; exit 1; }
+RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE

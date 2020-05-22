@@ -87,17 +87,18 @@ define get_glooe_var
 $(shell grep $(1) $(GLOOE_DIR)/build_env | cut -d '=' -f 2-)
 endef
 
-.PHONY: build-plugins
-verify-plugin: build-plugins
-	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
-	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
+.PHONY: build-plugin
+build-plugin: compile-plugin verify-plugin
 
-build-plugins: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
+compile-plugin: $(GLOOE_DIR)/build_env
 	export CGO_ENABLED=1
 	export GOARCH=amd64
 	export GOOS=linux
 	go build -buildmode=plugin -gcflags="$(call get_glooe_var,GC_FLAGS)" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
+verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64
+	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
+	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
 
 .PHONY: build-plugins-for-tests
 build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
@@ -107,4 +108,3 @@ $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 
 clean:
 	rm -rf _glooe
-	rm -f dependencies
