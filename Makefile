@@ -91,10 +91,7 @@ endef
 build-plugin: compile-plugin verify-plugin
 
 compile-plugin: $(GLOOE_DIR)/build_env
-	export CGO_ENABLED=1
-	export GOARCH=amd64
-	export GOOS=linux
-	go build -buildmode=plugin -gcflags="$(call get_glooe_var,GC_FLAGS)" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags="$(call get_glooe_var,GC_FLAGS)" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
 
 verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64
 	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
