@@ -8,7 +8,7 @@ format:
 #----------------------------------------------------------------------------------
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.4
+GLOOE_VERSION ?= 1.3.8
 
 # Set this variable to the name of your build plugin
 PLUGIN_BUILD_NAME ?= RequiredHeader.so

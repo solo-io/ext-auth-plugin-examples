@@ -27,7 +27,7 @@ You can get the images for the example plugin(s) contained in this repository by
 docker pull quay.io/solo-io/ext-auth-plugins:<glooe_version>
 ```
 
-where the tag `glooe_version` is the version of Gloo Enterprise you want to run the plugins with, e.g. `1.3.4`.
+where the tag `glooe_version` is the version of Gloo Enterprise you want to run the plugins with, e.g. `1.3.8`.
 
 ## Publishing your own plugins
 The images you created can be [published](#push-image) to a docker registry that is reachable from the cluster you are running Gloo Enterprise in.
@@ -44,7 +44,7 @@ Assuming that you create a plugin called ExamplePlugin.
 ### building the plugin
 First, store the version of Gloo Enterprise you want to target in an environment variable:
 ```
-export GLOOE_VERSION=1.3.4
+export GLOOE_VERSION=1.3.8
 export PLUGIN_NAME=example_plugin
 export PLUGIN_BUILD_NAME=ExamplePlugin.so
 export PLUGIN_IMAGE=gloo-ext-auth-plugin-${PLUGIN_NAME}-${GLOOE_VERSION}:0.0.1
@@ -110,12 +110,12 @@ for an example of how to do this.
 
 #### Configurable options
 The following options can be used to create a framework and/or plugin images
-These options can be set by changing its value in the `Makefile`, exporting them as a environment variable (`export GLOOE_VERSION=1.3.4`)
-or as command argument (`GLOOE_VERSION=1.3.4 make <target>` )
+These options can be set by changing its value in the `Makefile`, exporting them as a environment variable (`export GLOOE_VERSION=1.3.8`)
+or as command argument (`GLOOE_VERSION=1.3.8 make <target>` )
 
 | Option | Default | Description |
 | ------ | ------- | ----------- |
-| GLOOE_VERSION | 1.3.4 | Set this variable to the version of GlooE you want to target |
+| GLOOE_VERSION | 1.3.8 | Set this variable to the version of GlooE you want to target |
 | PLUGIN_BUILD_NAME | RequiredHeader.so | Set this variable to the name of your build plugin |
 | PLUGIN_IMAGE | gloo-ext-auth-plugins:$(GLOOE_VERSION) | Set this variable to the image name and tag of your plugin |
 | PLUGIN_NAME | required_header | Set this variable to the name of your plugin |
@@ -142,7 +142,7 @@ nature of Go plugins (you can find more info in [this section](https://docs.solo
 of the [Auth Plugin Developer Guide](https://docs.solo.io/gloo/latest/guides/dev/writing_auth_plugins/)). 
 With each release Gloo Enterprise publishes the information that you will require to replicate its build environment. 
 
-You can get them by running the following command, where `GLOOE_VERSION` is the desired Gloo Enterprise version, e.g. `1.3.4`.
+You can get them by running the following command, where `GLOOE_VERSION` is the desired Gloo Enterprise version, e.g. `1.3.8`.
 
 ```bash
 GLOOE_VERSION=<target-glooe-version> make get-glooe-info
