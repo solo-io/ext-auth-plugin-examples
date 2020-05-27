@@ -7,13 +7,22 @@ format:
 # Set build variables
 #----------------------------------------------------------------------------------
 # Set this variable to the name of your plugin
-PLUGIN_NAME ?= sample
+PLUGIN_NAME ?= required_header
+
+# Set this variable to the name of your build plugin
+PLUGIN_BUILD_NAME ?= RequiredHeader.so
 
 # Set this variable to the version of your plugin
 PLUGIN_VERSION ?= 0.0.1
 
 # Set this variable to the version of GlooE you want to target
 GLOOE_VERSION ?= 1.3.4
+
+# Set this variable to the image name and version used for building the plugin
+GO_BUILD_IMAGE ?= golang:1.14.0-alpine
+
+# Set this variable to the image name and version used for verifying the plugin
+GO_VERIFY_IMAGE ?= golang:1.14.0-alpine
 
 # Set this variable to the base image name for the container that will have the compiled plugin
 RUN_IMAGE ?= alpine:3.11
@@ -27,6 +36,18 @@ _ := $(shell mkdir -p $(GLOOE_DIR))
 PLUGIN_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
 PLUGIN_IMAGE := gloo-ext-auth-plugin-$(PLUGIN_NAME):$(PLUGIN_VERSION)
 
+#----------------------------------------------------------------------------------
+# Build an docker image which contains the plugin framework and plugin implementation
+#----------------------------------------------------------------------------------
+.PHONY: build
+build:
+	docker build --no-cache \
+		--build-arg GO_BUILD_IMAGE=$(GO_BUILD_IMAGE) \
+		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
+		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
+		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
+		--build-arg PLUGIN_PATH=$(PLUGIN_PATH) \
+		-t $(PLUGIN_IMAGE) .
 
 #----------------------------------------------------------------------------------
 # Retrieve GlooE build information
@@ -68,25 +89,20 @@ $(shell grep $(1) $(GLOOE_DIR)/build_env | cut -d '=' -f 2-)
 endef
 
 .PHONY: build-plugin
-build-plugin: $(GLOOE_DIR)/build_env $(GLOOE_DIR)/verify-plugins-linux-amd64
-	docker build --no-cache \
-		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
-		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
-		--build-arg GC_FLAGS=$(call get_glooe_var,GC_FLAGS) \
-		--build-arg VERIFY_SCRIPT=$(GLOOE_DIR)/verify-plugins-linux-amd64 \
-		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
-		--build-arg PLUGIN_PATH=$(PLUGIN_PATH) \
-		-t $(PLUGIN_IMAGE) .
+build-plugin: compile-plugin verify-plugin
 
-.PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
-	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go
+
+verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64
+	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
+	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
 
 .PHONY: build-plugins-for-tests
-build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
+build-plugins-for-tests: $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME)
 
 $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
-	go build -buildmode=plugin -o $(EXAMPLES_DIR)/required_header/RequiredHeader.so $(EXAMPLES_DIR)/required_header/plugin.go
+	go build -buildmode=plugin -o $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME) $(EXAMPLES_DIR)/required_header/plugin.go
 
 clean:
 	rm -rf _glooe

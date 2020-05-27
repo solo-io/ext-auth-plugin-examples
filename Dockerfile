@@ -23,7 +23,8 @@ ARG VERIFY_SCRIPT
 
 # Fail if VERIFY_SCRIPT not set
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
-RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
+RUN if [ ! $GLOOE_VERSION ]; then echo "Required GLOOE_VERSION build argument not set" && exit 1; fi
+RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argument not set" && exit 1; fi
 
 # Install packages needed for compilation
 RUN apk add --no-cache gcc musl-dev git make
@@ -40,8 +41,7 @@ RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv g
 RUN make compile-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # Run the script to verify that the plugin(s) can be loaded by Gloo
-RUN chmod +x $VERIFY_SCRIPT
-RUN $VERIFY_SCRIPT -pluginDir plugins -manifest plugins/plugin_manifest.yaml || { echo "Used module:" | cat - go.mod; exit 1; }
+RUN make verify-plugin
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE
@@ -49,7 +49,7 @@ ARG PLUGIN_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build /go/$PLUGIN_PATH/plugins/RequiredHeader.so /compiled-auth-plugins/
+COPY --from=build /go/$PLUGIN_PATH/plugins/*.so /compiled-auth-plugins/
 COPY --from=build /go/$PLUGIN_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.

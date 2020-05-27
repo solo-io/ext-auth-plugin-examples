@@ -149,7 +149,7 @@ In both previous build cases, an anonymous container with the plugin is build fo
  ---> 4846ae5e0a4d
 Step 15/16 : COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugin-examples/plugins/RequiredHeader.so /compiled-auth-plugins/
  ---> 1932dbdca716
-Step 16/16 : CMD cp /compiled-auth-plugins/* /auth-plugins/
+Step 16/16 : CMD cp /compiled-auth-plugins/*.so /auth-plugins/
  ---> Running in c33580aff7e1
 Removing intermediate container c33580aff7e1
  ---> c6d2a92c47e4
