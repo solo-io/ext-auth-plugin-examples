@@ -6,8 +6,6 @@ format:
 #----------------------------------------------------------------------------------
 # Set build variables
 #----------------------------------------------------------------------------------
-# Set this variable to the image name and version used for building the plugin
-GO_BUILD_IMAGE ?= golang:1.14.0-alpine
 
 # Set this variable to the version of GlooE you want to target
 GLOOE_VERSION ?= 1.3.4
@@ -38,7 +36,7 @@ PLUGIN_MODULE_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
 .PHONY: build
 build:
 	docker build --no-cache \
-		--build-arg GO_BUILD_IMAGE=$(GO_BUILD_IMAGE) \
+		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
 		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \

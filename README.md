@@ -115,12 +115,11 @@ or as command argument (`GLOOE_VERSION=1.3.4 make <target>` )
 
 | Option | Default | Description |
 | ------ | ------- | ----------- |
-| GO_BUILD_IMAGE | golang:1.14.0-buster | Set this variable to the image name and version used for building the plugin.|
-| GLOOE_VERSION | 1.3.1 | Set this variable to the version of GlooE you want to target |
+| GLOOE_VERSION | 1.3.4 | Set this variable to the version of GlooE you want to target |
 | PLUGIN_BUILD_NAME | RequiredHeader.so | Set this variable to the name of your build plugin |
 | PLUGIN_IMAGE | gloo-ext-auth-plugins:$(GLOOE_VERSION) | Set this variable to the image name and tag of your plugin |
 | PLUGIN_NAME | required_header | Set this variable to the name of your plugin |
-| RUN_IMAGE | alpine:3.10 | Set this variable to the image name and version used for running the plugin |
+| RUN_IMAGE | alpine:3.11 | Set this variable to the image name and version used for running the plugin |
 | STORAGE_HOSTNAME | storage.googleapis.com | Set this variable to the hostname of your custom (air gapped) storage server |
 
 
