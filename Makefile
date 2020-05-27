@@ -34,7 +34,7 @@ PLUGIN_MODULE_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
 # Build an docker image which contains the plugin framework and plugin implementation
 #----------------------------------------------------------------------------------
 .PHONY: build
-build:
+build: get-glooe-info
 	docker build --no-cache \
 		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
 		--build-arg RUN_IMAGE=$(RUN_IMAGE) \

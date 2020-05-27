@@ -15,7 +15,6 @@ ARG STORAGE_HOSTNAME
 ARG PLUGIN_MODULE_PATH
 
 ENV GONOSUMDB=*
-ENV GO111MODULE=on
 ENV CGO_ENABLED=1
 
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
