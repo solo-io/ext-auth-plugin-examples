@@ -87,7 +87,20 @@ build-plugin: compile-plugin verify-plugin
 
 .PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
-	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go
+	# required if using older versions of GlooE (1.3.3 or 1.4.0-beta2, or earlier, require building with GO111MODULE=off)
+	go mod vendor
+	# De-vendor all the dependencies and move them to the GOPATH, so they will be loaded from there.
+	# We need this so that the import paths for any library shared between the plugins and Gloo are the same.
+	#
+	# For example, if we were to vendor the ext-auth-plugin dependency, the ext-auth-server would load the plugin interface
+	# as `GLOOE_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`, while the plugin
+	# would instead implement `THIS_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`. These would be seen
+	# by the go runtime as two different types, causing Gloo to fail.
+	# Also, some packages cause problems if loaded more than once. For example, loading `golang.org/x/net/trace` twice
+	# causes a panic (see here: https://github.com/golang/go/issues/24137). By flattening the dependencies this way we
+	# prevent these sorts of problems.
+	cp -a vendor/. /go/src/ && rm -rf vendor
+	GO111MODULE=off CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go
 
 .PHONY: verify-plugin
 verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64

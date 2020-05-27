@@ -25,7 +25,10 @@ RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argum
 # Install packages needed for compilation
 RUN apk add --no-cache gcc musl-dev git make
 
-WORKDIR $PLUGIN_MODULE_PATH
+# Set working dir to gopath to support older versions of Gloo that built plugins with go modules disabled
+ADD . /go/src/$PLUGIN_MODULE_PATH
+WORKDIR /go/src/$PLUGIN_MODULE_PATH
+
 # Resolve dependencies and ensure dependency version usage
 COPY Makefile go.mod go.sum ./
 COPY pkg ./pkg
@@ -43,8 +46,8 @@ ARG PLUGIN_MODULE_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build /go/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
-COPY --from=build /go/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.
 # It has to copy the compiled plugin file(s) to a directory.
