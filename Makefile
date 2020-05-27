@@ -12,9 +12,6 @@ PLUGIN_NAME ?= required_header
 # Set this variable to the name of your build plugin
 PLUGIN_BUILD_NAME ?= RequiredHeader.so
 
-# Set this variable to the version of your plugin
-PLUGIN_VERSION ?= 0.0.1
-
 # Set this variable to the version of GlooE you want to target
 GLOOE_VERSION ?= 1.3.4
 
@@ -30,11 +27,13 @@ RUN_IMAGE ?= alpine:3.11
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
+# Set this variable to the image name and tag of your plugin
+PLUGIN_IMAGE ?= gloo-ext-auth-plugins:$(GLOOE_VERSION)
+
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
 PLUGIN_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
-PLUGIN_IMAGE := gloo-ext-auth-plugin-$(PLUGIN_NAME):$(PLUGIN_VERSION)
 
 #----------------------------------------------------------------------------------
 # Build an docker image which contains the plugin framework and plugin implementation
