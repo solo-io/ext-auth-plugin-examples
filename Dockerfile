@@ -12,7 +12,7 @@ FROM $GO_BUILD_IMAGE AS build-env
 FROM build-env as build
 ARG GLOOE_VERSION
 ARG STORAGE_HOSTNAME
-ARG PLUGIN_PATH
+ARG PLUGIN_MODULE_PATH
 
 ENV GONOSUMDB=*
 ENV GO111MODULE=on
@@ -29,7 +29,7 @@ RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argum
 # Install packages needed for compilation
 RUN apk add --no-cache gcc musl-dev git make
 
-WORKDIR $PLUGIN_PATH
+WORKDIR $PLUGIN_MODULE_PATH
 # Resolve dependencies and ensure dependency version usage
 COPY Makefile go.mod go.sum ./
 COPY pkg ./pkg
@@ -45,12 +45,12 @@ RUN make verify-plugin
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE
-ARG PLUGIN_PATH
+ARG PLUGIN_MODULE_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build /go/$PLUGIN_PATH/plugins/*.so /compiled-auth-plugins/
-COPY --from=build /go/$PLUGIN_PATH/go.mod /compiled-auth-plugins/
+COPY --from=build /go/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
+COPY --from=build /go/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.
 # It has to copy the compiled plugin file(s) to a directory.

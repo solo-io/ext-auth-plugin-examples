@@ -6,20 +6,20 @@ format:
 #----------------------------------------------------------------------------------
 # Set build variables
 #----------------------------------------------------------------------------------
-# Set this variable to the name of your plugin
-PLUGIN_NAME ?= required_header
-
-# Set this variable to the name of your build plugin
-PLUGIN_BUILD_NAME ?= RequiredHeader.so
+# Set this variable to the image name and version used for building the plugin
+GO_BUILD_IMAGE ?= golang:1.14.0-alpine
 
 # Set this variable to the version of GlooE you want to target
 GLOOE_VERSION ?= 1.3.4
 
-# Set this variable to the image name and version used for building the plugin
-GO_BUILD_IMAGE ?= golang:1.14.0-alpine
+# Set this variable to the name of your build plugin
+PLUGIN_BUILD_NAME ?= RequiredHeader.so
 
-# Set this variable to the image name and version used for verifying the plugin
-GO_VERIFY_IMAGE ?= golang:1.14.0-alpine
+# Set this variable to the image name and tag of your plugin
+PLUGIN_IMAGE ?= gloo-ext-auth-plugins:$(GLOOE_VERSION)
+
+# Set this variable to the name of your plugin
+PLUGIN_NAME ?= required_header
 
 # Set this variable to the base image name for the container that will have the compiled plugin
 RUN_IMAGE ?= alpine:3.11
@@ -27,13 +27,10 @@ RUN_IMAGE ?= alpine:3.11
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
-# Set this variable to the image name and tag of your plugin
-PLUGIN_IMAGE ?= gloo-ext-auth-plugins:$(GLOOE_VERSION)
-
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
-PLUGIN_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
+PLUGIN_MODULE_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
 
 #----------------------------------------------------------------------------------
 # Build an docker image which contains the plugin framework and plugin implementation
@@ -45,7 +42,7 @@ build:
 		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
-		--build-arg PLUGIN_PATH=$(PLUGIN_PATH) \
+		--build-arg PLUGIN_MODULE_PATH=$(PLUGIN_MODULE_PATH) \
 		-t $(PLUGIN_IMAGE) .
 
 #----------------------------------------------------------------------------------
