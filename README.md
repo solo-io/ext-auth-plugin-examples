@@ -41,7 +41,7 @@ Assuming that you create a plugin called ExamplePlugin.
 * Change the code in `plugins/example_plugin/pkg/impl.go` with your custom code.
 * Change the module name in [](go.mod)
 
-### build
+### building the plugin
 First, store the version of Gloo Enterprise you want to target in an environment variable:
 ```
 export GLOOE_VERSION=1.3.4
@@ -51,11 +51,7 @@ export PLUGIN_IMAGE=gloo-ext-auth-plugin-${PLUGIN_NAME}-${GLOOE_VERSION}:0.0.1
 ```
 
 #### Containerized (docker) build
-Run `build` to build the plugin in a container using the [](Dockerfile).
-This executes the following targets in the container:
-* [`get-glooe-info`](#get-glooe-info) to fetch the build information for the targeted Gloo Enterprise version
-* [`resolve-deps`](#resolve-deps) to check if gloo and your plugin have different dependencies
-* [`build-plugin`](#build-plugin) to build and verify if the plugin can be loaded by the targeted Gloo Enterprise version 
+Run [`build`](#build) to build the plugin in a container.
 ```
 make build
 ```
@@ -201,8 +197,23 @@ the offending `replace` entry from your `go.mod` file and add a `require` entry 
 possible given the dependencies of your plugin, please join [our community Slack](https://slack.solo.io/) and let us know, 
 so we can think about a solution together.
 
-### build-plugins
-The `build-plugins` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
+### build-plugin
+The `build-plugin` target uses the information published by Gloo Enterprise to mirror its build 
+environment to compile the plugin and verify compatibility.
+
+#### compile-plugin
+The `compile-plugin` target compiles the plugin for the targeted Gloo Enterprise version.
+
+#### verify-plugin
+The `verify-plugin` target verifies if the plugin can be loaded by the targeted Gloo Enterprise version.
+
+### build
+The `build-plugin` target compiles the plugin inside a docker container using the `Dockerfile` at the root of this 
 repository (this is done for reproducibility). It uses the information published by Gloo Enterprise to mirror its build 
 environment and verify compatibility.
+The `Dockerfile` executes the following targets in the container:
+* [`get-glooe-info`](#get-glooe-info) to fetch the build information for the targeted Gloo Enterprise version
+* [`resolve-deps`](#resolve-deps) to check if gloo and your plugin have different dependencies
+* [`compile-plugin`](#build-plugin) to build the plugin for the targeted Gloo Enterprise version 
+* [`verify-plugin`](#build-plugin) to verify if the plugin can be loaded by the targeted Gloo Enterprise version 
 
