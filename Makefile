@@ -85,9 +85,11 @@ endef
 .PHONY: build-plugin
 build-plugin: compile-plugin verify-plugin
 
+.PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
 	CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go
 
+.PHONY: verify-plugin
 verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64
 	chmod +x $(GLOOE_DIR)/verify-plugins-linux-amd64
 	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
@@ -98,5 +100,6 @@ build-plugins-for-tests: $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME)
 $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
 	go build -buildmode=plugin -o $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME) $(EXAMPLES_DIR)/required_header/plugin.go
 
+.PHONY: clean
 clean:
 	rm -rf _glooe

@@ -18,10 +18,6 @@ ENV GONOSUMDB=*
 ENV GO111MODULE=on
 ENV CGO_ENABLED=1
 
-# This must contain the path to the plugin verification script
-ARG VERIFY_SCRIPT
-
-# Fail if VERIFY_SCRIPT not set
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
 RUN if [ ! $GLOOE_VERSION ]; then echo "Required GLOOE_VERSION build argument not set" && exit 1; fi
 RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argument not set" && exit 1; fi
@@ -38,10 +34,8 @@ COPY plugins ./plugins
 
 RUN make get-glooe-info resolve-deps
 RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv go.new go.mod
-RUN make compile-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
-
-# Run the script to verify that the plugin(s) can be loaded by Gloo
-RUN make verify-plugin
+# Run compile and verify the plugin can be loaded by Gloo
+RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE
