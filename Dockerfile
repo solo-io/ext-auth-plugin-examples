@@ -25,7 +25,6 @@ RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argum
 RUN apk add --no-cache gcc musl-dev git make
 
 # Set working dir to gopath to support older versions of Gloo that built plugins with go modules disabled
-ADD . /go/src/$PLUGIN_MODULE_PATH
 WORKDIR /go/src/$PLUGIN_MODULE_PATH
 
 # Resolve dependencies and ensure dependency version usage
