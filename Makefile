@@ -125,10 +125,10 @@ verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64
 	$(GLOOE_DIR)/verify-plugins-linux-amd64 -pluginDir plugins -manifest plugins/plugin_manifest.yaml
 
 .PHONY: build-plugins-for-tests
-build-plugins-for-tests: $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME)
+build-plugins-for-tests: $(EXAMPLES_DIR)/required_header/RequiredHeader.so
 
 $(EXAMPLES_DIR)/required_header/RequiredHeader.so: $(SOURCES)
-	go build -buildmode=plugin -o $(EXAMPLES_DIR)/$(PLUGIN_NAME)/$(PLUGIN_BUILD_NAME) $(EXAMPLES_DIR)/required_header/plugin.go
+	go build -buildmode=plugin -o $(EXAMPLES_DIR)/required_header/RequiredHeader.so $(EXAMPLES_DIR)/required_header/plugin.go
 
 .PHONY: clean
 clean:
