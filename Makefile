@@ -25,6 +25,14 @@ RUN_IMAGE ?= alpine:3.11
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
+# If the plugin should be built with go modules (must match Gloo Enterprise build mode)
+GO_MODULES ?= true
+
+# Where the dockerfile working directory should be while building the plugin
+# - /go if GO_MODULES is true (the default, and true of newer releases of Gloo Enterprise)
+# - /go/src is GO_MODULES isn't true
+WORKING_DIR ?= /go
+
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
@@ -41,6 +49,8 @@ build: get-glooe-info
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
 		--build-arg PLUGIN_MODULE_PATH=$(PLUGIN_MODULE_PATH) \
+		--build-arg WORKING_DIR=$(WORKING_DIR) \
+		--build-arg GO_MODULES=$(GO_MODULES) \
 		-t $(PLUGIN_IMAGE) .
 
 #----------------------------------------------------------------------------------
@@ -87,20 +97,27 @@ build-plugin: compile-plugin verify-plugin
 
 .PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
-	# required if using older versions of GlooE (1.3.3 or 1.4.0-beta2, or earlier, require building with GO111MODULE=off)
-	go mod vendor
-	# De-vendor all the dependencies and move them to the GOPATH, so they will be loaded from there.
-	# We need this so that the import paths for any library shared between the plugins and Gloo are the same.
+	# If using older versions of GlooE (1.3.3 or 1.4.0-beta2, or earlier, require building with GO111MODULE=off)
+	#   De-vendor all the dependencies and move them to the GOPATH, so they will be loaded from there.
+	#   We need this so that the import paths for any library shared between the plugins and Gloo are the same.
 	#
-	# For example, if we were to vendor the ext-auth-plugin dependency, the ext-auth-server would load the plugin interface
-	# as `GLOOE_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`, while the plugin
-	# would instead implement `THIS_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`. These would be seen
-	# by the go runtime as two different types, causing Gloo to fail.
-	# Also, some packages cause problems if loaded more than once. For example, loading `golang.org/x/net/trace` twice
-	# causes a panic (see here: https://github.com/golang/go/issues/24137). By flattening the dependencies this way we
-	# prevent these sorts of problems.
-	cp -a vendor/. /go/src/ && rm -rf vendor
-	GO111MODULE=off CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go
+	#   For example, if we were to vendor the ext-auth-plugin dependency, the ext-auth-server would load the plugin interface
+	#   as `GLOOE_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`, while the plugin
+	#   would instead implement `THIS_REPO/vendor/github.com/solo-io/ext-auth-plugins/api.ExtAuthPlugin`. These would be seen
+	#   by the go runtime as two different types, causing Gloo to fail.
+	#   Also, some packages cause problems if loaded more than once. For example, loading `golang.org/x/net/trace` twice
+	#   causes a panic (see here: https://github.com/golang/go/issues/24137). By flattening the dependencies this way we
+	#   prevent these sorts of problems.
+	# else just build with go modules
+	if [ "${GO_MODULES}" = "true" ]; then \
+		echo "building plugin with go modules enabled"; \
+		GO111MODULE=on CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go; \
+	else \
+		echo "building plugin with go modules disabled"; \
+		go mod vendor; \
+		cp -a vendor/. /go/src/ && rm -rf vendor; \
+		GO111MODULE=off CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go; \
+	fi
 
 .PHONY: verify-plugin
 verify-plugin: $(GLOOE_DIR)/verify-plugins-linux-amd64

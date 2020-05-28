@@ -13,9 +13,11 @@ FROM build-env as build
 ARG GLOOE_VERSION
 ARG STORAGE_HOSTNAME
 ARG PLUGIN_MODULE_PATH
+ARG WORKING_DIR
+ARG GO_MODULES
 
 ENV GONOSUMDB=*
-ENV CGO_ENABLED=1
+ENV GO_MODULES=$GO_MODULES
 
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
 RUN if [ ! $GLOOE_VERSION ]; then echo "Required GLOOE_VERSION build argument not set" && exit 1; fi
@@ -24,8 +26,10 @@ RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argum
 # Install packages needed for compilation
 RUN apk add --no-cache gcc musl-dev git make
 
-# Set working dir to gopath to support older versions of Gloo that built plugins with go modules disabled
-WORKDIR /go/src/$PLUGIN_MODULE_PATH
+# Sets working dir to the correct directory
+# /go/src to support older versions of Gloo that built plugins with go modules disabled
+# /go to support newer versions of Gloo that build with go modules
+WORKDIR $WORKING_DIR/$PLUGIN_MODULE_PATH
 
 # Resolve dependencies and ensure dependency version usage
 COPY Makefile go.mod go.sum ./
@@ -35,17 +39,18 @@ COPY plugins ./plugins
 
 RUN make get-glooe-info resolve-deps
 RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv go.new go.mod
-# Run compile and verify the plugin can be loaded by Gloo
+# Compile and verify the plugin can be loaded by Gloo
 RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE
+ARG WORKING_DIR
 ARG PLUGIN_MODULE_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build /go/src/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
-COPY --from=build /go/src/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
+COPY --from=build $WORKING_DIR/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
+COPY --from=build $WORKING_DIR/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.
 # It has to copy the compiled plugin file(s) to a directory.
