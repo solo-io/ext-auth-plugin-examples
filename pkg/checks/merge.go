@@ -256,9 +256,6 @@ func toDependencyInfo(module *ModuleInfo) (map[string]DependencyInfo, error) {
 }
 
 func copyMap(m map[string]string) map[string]string {
-	//if m == nil {
-	//	return nil
-	//}
 	cp := make(map[string]string)
 	for k, v := range m {
 		cp[k] = v
