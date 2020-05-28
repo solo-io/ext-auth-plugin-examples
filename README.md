@@ -39,7 +39,7 @@ Assuming that you create a plugin called ExamplePlugin.
 * Create a copy of this template repo
 * Rename the directory `required_header` to `example_plugin` in the `plugins` directory. 
 * Change the code in `plugins/example_plugin/pkg/impl.go` with your custom code.
-* Change the module name in [](go.mod)
+* Change the module name in [go.mod](go.mod)
 
 ### building the plugin
 First, store the version of Gloo Enterprise you want to target in an environment variable:
@@ -56,13 +56,13 @@ Run [`build`](#build) to build the plugin in a container.
 make build
 ```
 
-#### Local (linux) build
+#### Local build
 Run [`get-glooe-info`](#get-glooe-info) to fetch the build information for the targeted Gloo Enterprise version:
 ```
 make get-glooe-info
 ```
 
-Run [`resolve-deps`](#resolve-deps) to check if gloo and your plugin have different dependencies:
+Run [`resolve-deps`](#resolve-deps) to check and resolve any dependency mismatches between gloo and your plugin:
 
 ```
 make resolve-deps
@@ -71,6 +71,9 @@ make resolve-deps
 Run [`build-plugin`](#build-plugin) to build the plugin.
 It is important to build the plugins on a linux operating system, because this is compatible with Gloo Enterprise. 
 This step will also verify that they can be loaded.
+
+Note: It is recommended to build in docker to ensure that other plugin/C dependencies for plugin compilation match the
+same environment Gloo Enterprise was built in (e.g., linker)
 
 ```
 make build-plugin
@@ -132,6 +135,10 @@ You might see an error similar to this one in the logs for the [`build-plugin`](
 ```
 
 This is caused by a dependency mismatch. Please run the [`resolve-deps`](#resolve-deps) target to update your `go.mod` file.
+Note that the mismatch can also be caused by building in a different mode than Gloo Enterprise (go modules vs go path,
+as the path to the dependency is included in the version mismatch check). The make target should try to determine how
+to build your plugin for you (go mod vendor -> go path build or just building go modules) using the version of Gloo
+Enterprise you are targeting.
 
 ## Makefile overview
 Following is an overview of the most relevant `make` targets.
@@ -159,39 +166,6 @@ The `resolve-deps` target compares and merge the dependencies of your plugin mod
 It will succeed if the shared dependencies match _exactly_ (this is another constraint imposed by Go plugins, more info 
 [here](https://docs.solo.io/gloo/latest/guides/dev/writing_auth_plugins/#build-helper-tools)) and fail otherwise, outputting information 
 about mismatches to stdout.
-The information contains entries that you can add to your `go.mod` file to bring your dependencies in sync with the Gloo Enterprise ones.
-
-#### Possible mismatch types
-There are four different types of dependency incompatibilities that the `resolve-deps` script can detect.
-
-##### `Require`
-- Display message: __"Please pin your dependency to the same version as the Gloo one using a [require] clause"__
-- Cause: this error occurs when both your plugin and Gloo require different versions of the same module via a `require` 
-statement.
-- Solution: update your `go.mod` file so that the `require` entry for the module matches the version that Gloo requires.
-
-##### `PluginMissingReplace`
-- Display message: __"Please add a [replace] clause matching the Gloo one"__
-- Cause: this error occurs when your plugin requires a module via a `require` statement, but Gloo defines a `replace` 
-for the same module. This is a problem, as your plugin will most likely end up with a different version of that shared 
-module dependency.
-- Solution: add a `replace` entry that matches the one in Gloo to your `go.mod` file.
-
-##### `ReplaceMismatch`
-- Display message: __"The plugin [replace] clause must match the Gloo one"__
-- Cause: this error occurs when both your plugin and Gloo define different replacements for the same module via `replace` 
-statements.
-- Solution: update your `go.mod` file so that the `replace` entry for the module matches the Gloo one.
-
-##### `PluginExtraReplace`
-- Display message: __"Please remove the [replace] clause and pin your dependency to the same version as the Gloo one 
-using a [require] clause"__
-- Cause: this error occurs when your plugin defines a replacement for a module via a `replace` statement, but Gloo defines 
-a `require` (but no `replace`) for the same module. This is a problem for the same reasons mentioned in `PluginMissingReplace`.
-- Solution: since there is no way for you to modify the Gloo `go.mod` file, the only solution to this error is to remove 
-the offending `replace` entry from your `go.mod` file and add a `require` entry matching the Gloo one. If this is not 
-possible given the dependencies of your plugin, please join [our community Slack](https://slack.solo.io/) and let us know, 
-so we can think about a solution together.
 
 ### build-plugin
 The `build-plugin` target uses the information published by Gloo Enterprise to mirror its build 
@@ -212,4 +186,3 @@ The `Dockerfile` executes the following targets in the container:
 * [`resolve-deps`](#resolve-deps) to check if gloo and your plugin have different dependencies
 * [`compile-plugin`](#build-plugin) to build the plugin for the targeted Gloo Enterprise version 
 * [`verify-plugin`](#build-plugin) to verify if the plugin can be loaded by the targeted Gloo Enterprise version 
-
