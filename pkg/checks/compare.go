@@ -8,7 +8,7 @@ import (
 type MismatchType int
 
 const (
-	isForked = "CHECKED_IS_FORKED"
+	isForked = "IS_FORKED"
 
 	Ok MismatchType = iota
 	Require
@@ -34,7 +34,7 @@ type DependencyInfoPair struct {
 	Gloo         DependencyInfo `json:"glooDependencies"`
 }
 
-func compareDependencies(pluginDependencies, glooDependencies map[string]DependencyInfo) []DependencyInfoPair {
+func CompareDependencies(pluginDependencies, glooDependencies map[string]DependencyInfo) []DependencyInfoPair {
 	var nonMatchingDeps []DependencyInfoPair
 	for name, depInfo := range pluginDependencies {
 
@@ -65,7 +65,7 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	case glooDep.Replacement == true && pluginDep.Replacement == false:
 		return false, PluginMissingReplace, "Please add a [replace] clause matching the Gloo one"
 	case glooDep.Replacement == false && pluginDep.Replacement == true:
-		// but by using this hack, we are able to support forked repo's
+		// by using this hack, we are able to support forked repos
 		if isSet, _ := strconv.ParseBool(os.Getenv(isForked)); isSet {
 			return true, Ok, ""
 		}

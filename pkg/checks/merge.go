@@ -30,11 +30,11 @@ type ModuleInfo struct {
 }
 
 func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []DependencyInfoPair, error) {
-	pluginModule, err := parseModuleFile(moduleFilePath)
+	pluginModule, err := ParseModuleFile(moduleFilePath)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
-	glooModule, err := parseDependenciesFile(glooDepsFilePath)
+	glooModule, err := ParseDependenciesFile(glooDepsFilePath)
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to parse Gloo Enterprise go.mod file")
 	}
@@ -43,7 +43,7 @@ func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []D
 	pluginDeps, err := toDependencyInfo(merged)
 	gloonDeps, err := toDependencyInfo(glooModule)
 
-	nonMatchingDeps := compareDependencies(pluginDeps, gloonDeps)
+	nonMatchingDeps := CompareDependencies(pluginDeps, gloonDeps)
 
 	return merged, nonMatchingDeps, err
 }
@@ -94,7 +94,7 @@ func mergeModules(pluginModule, glooModule *ModuleInfo) *ModuleInfo {
 	return merged
 }
 
-func parseDependenciesFile(filePath string) (*ModuleInfo, error) {
+func ParseDependenciesFile(filePath string) (*ModuleInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func parseDependenciesFile(filePath string) (*ModuleInfo, error) {
 	return module, scanner.Err()
 }
 
-func parseModuleFile(filePath string) (*ModuleInfo, error) {
+func ParseModuleFile(filePath string) (*ModuleInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
 	}
