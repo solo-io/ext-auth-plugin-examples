@@ -37,7 +37,7 @@ COPY pkg ./pkg
 COPY scripts ./scripts
 COPY plugins ./plugins
 
-RUN make get-glooe-info resolve-deps
+RUN make resolve-deps
 RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv go.new go.mod
 # Compile and verify the plugin can be loaded by Gloo
 RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }

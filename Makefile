@@ -42,7 +42,7 @@ PLUGIN_MODULE_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
 # Build an docker image which contains the plugin framework and plugin implementation
 #----------------------------------------------------------------------------------
 .PHONY: build
-build: get-glooe-info
+build: $(GLOOE_DIR)/build_env
 	docker build --no-cache \
 		--build-arg GO_BUILD_IMAGE=$(call get_glooe_var,GO_BUILD_IMAGE) \
 		--build-arg RUN_IMAGE=$(RUN_IMAGE) \
@@ -97,7 +97,7 @@ build-plugin: compile-plugin verify-plugin
 
 .PHONY: compile-plugin
 compile-plugin: $(GLOOE_DIR)/build_env
-	# If using older versions of GlooE (1.3.3 or 1.4.0-beta2, or earlier, require building with GO111MODULE=off)
+	# If using older versions of GlooE (1.3.3 or 1.4.0-beta2, or earlier) must build with GO111MODULE=off, also:
 	#   De-vendor all the dependencies and move them to the GOPATH, so they will be loaded from there.
 	#   We need this so that the import paths for any library shared between the plugins and Gloo are the same.
 	#
