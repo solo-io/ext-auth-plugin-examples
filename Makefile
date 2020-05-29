@@ -28,11 +28,6 @@ STORAGE_HOSTNAME ?= storage.googleapis.com
 # If the plugin should be built with go modules (must match Gloo Enterprise build mode)
 GO_MODULES ?= true
 
-# Where the dockerfile working directory should be while building the plugin
-# - /go if GO_MODULES is true (the default, and true of newer releases of Gloo Enterprise)
-# - /go/src is GO_MODULES isn't true
-WORKING_DIR ?= /go
-
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
@@ -49,7 +44,6 @@ build: $(GLOOE_DIR)/build_env
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
 		--build-arg PLUGIN_MODULE_PATH=$(PLUGIN_MODULE_PATH) \
-		--build-arg WORKING_DIR=$(WORKING_DIR) \
 		--build-arg GO_MODULES=$(GO_MODULES) \
 		-t $(PLUGIN_IMAGE) .
 

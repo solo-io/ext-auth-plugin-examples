@@ -13,7 +13,6 @@ FROM build-env as build
 ARG GLOOE_VERSION
 ARG STORAGE_HOSTNAME
 ARG PLUGIN_MODULE_PATH
-ARG WORKING_DIR
 ARG GO_MODULES
 
 ENV GONOSUMDB=*
@@ -27,9 +26,8 @@ RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argum
 RUN apk add --no-cache gcc musl-dev git make
 
 # Sets working dir to the correct directory
-# /go/src to support older versions of Gloo that built plugins with go modules disabled
-# /go to support newer versions of Gloo that build with go modules
-WORKDIR $WORKING_DIR/$PLUGIN_MODULE_PATH
+# /go/src to support older versions of Gloo that built plugins with go modules disabled (i.e., gopath builds)
+WORKDIR /go/src/$PLUGIN_MODULE_PATH
 
 # Resolve dependencies and ensure dependency version usage
 COPY Makefile go.mod go.sum ./
@@ -44,13 +42,12 @@ RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
 FROM $RUN_IMAGE
-ARG WORKING_DIR
 ARG PLUGIN_MODULE_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build $WORKING_DIR/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
-COPY --from=build $WORKING_DIR/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.
 # It has to copy the compiled plugin file(s) to a directory.
