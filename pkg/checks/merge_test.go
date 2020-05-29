@@ -1,11 +1,12 @@
 package checks_test
 
 import (
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/solo-io/ext-auth-plugin-examples/pkg/checks"
-	"path/filepath"
 )
 
 const (

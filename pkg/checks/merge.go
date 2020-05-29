@@ -3,9 +3,10 @@ package checks
 import (
 	"bufio"
 	"fmt"
-	"github.com/pkg/errors"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const (

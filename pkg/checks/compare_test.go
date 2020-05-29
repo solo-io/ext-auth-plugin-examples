@@ -2,14 +2,15 @@ package checks_test
 
 import (
 	"bufio"
+	"os"
+	"path/filepath"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"github.com/solo-io/ext-auth-plugin-examples/pkg/checks"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 const (
