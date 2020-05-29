@@ -1,40 +1,53 @@
-# This stage is parametrized to replicate the same environment Gloo Enterprise was built in.
+# Prepare the build environment.
+# Use this stage to add certificates and set proxies
 # All ARGs need to be set via the docker `--build-arg` flags.
 ARG GO_BUILD_IMAGE
+ARG RUN_IMAGE
 FROM $GO_BUILD_IMAGE AS build-env
 
-# This must contain the value of the `gcflag` build flag that Gloo was built with
-ARG GC_FLAGS
-# This must contain the path to the plugin verification script
-ARG VERIFY_SCRIPT
+# This stage is parametrized to replicate the same environment Gloo Enterprise was built in.
+# It is important to use the same container to build the plugin that Gloo Enterprise was
+# built in to ensure that the same go version and linker is used during compilation.
+# All ARGs need to be set via the docker `--build-arg` flags.
+FROM build-env as build
+ARG GLOOE_VERSION
+ARG STORAGE_HOSTNAME
+ARG PLUGIN_MODULE_PATH
 
-# Fail if VERIFY_SCRIPT not set
+ENV GONOSUMDB=*
+ENV GLOOE_VERSION=$GLOOE_VERSION
+
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
-RUN if [[ ! $VERIFY_SCRIPT ]]; then echo "Required VERIFY_SCRIPT build argument not set" && exit 1; fi
+RUN if [ ! $GLOOE_VERSION ]; then echo "Required GLOOE_VERSION build argument not set" && exit 1; fi
+RUN if [ ! $STORAGE_HOSTNAME ]; then echo "Required STORAGE_HOSTNAME build argument not set" && exit 1; fi
 
 # Install packages needed for compilation
-RUN apk add --no-cache gcc musl-dev git
+RUN apk add --no-cache gcc musl-dev git make
 
-# Copy the repository to the image and set it as the working directory. The GOPATH here is `/go`.
-# The directory chosen here is arbitrary and does not influence the plugins compatibility with Gloo.
-ADD . /go/src/github.com/solo-io/ext-auth-plugin-examples/
-WORKDIR /go/src/github.com/solo-io/ext-auth-plugin-examples
+# Sets working dir to the correct directory
+# /go/src to support older versions of Gloo that built plugins with go modules disabled (i.e., gopath builds)
+WORKDIR /go/src/$PLUGIN_MODULE_PATH
 
-# Build plugins with CGO enabled, passing the GC_FLAGS flags
-ENV CGO_ENABLED=1 GOARCH=amd64 GOOS=linux
-RUN go build -buildmode=plugin -gcflags="$GC_FLAGS" -o plugins/RequiredHeader.so plugins/required_header/plugin.go
+# Resolve dependencies and ensure dependency version usage
+COPY Makefile go.mod go.sum ./
+COPY pkg ./pkg
+COPY scripts ./scripts
+COPY plugins ./plugins
 
-# Run the script to verify that the plugin(s) can be loaded by Gloo
-RUN chmod +x $VERIFY_SCRIPT
-RUN $VERIFY_SCRIPT -pluginDir plugins -manifest plugins/plugin_manifest.yaml
+RUN make resolve-deps
+RUN echo "// Generated for GlooE $GLOOE_VERSION" | cat - go.mod > go.new && mv go.new go.mod
+# Compile and verify the plugin can be loaded by Gloo
+RUN make build-plugin || { echo "Used module:" | cat - go.mod; exit 1; }
 
 # This stage builds the final image containing just the plugin .so files. It can really be any linux/amd64 image.
-FROM alpine:3.10.1
+FROM $RUN_IMAGE
+ARG PLUGIN_MODULE_PATH
 
 # Copy compiled plugin file from previous stage
 RUN mkdir /compiled-auth-plugins
-COPY --from=build-env /go/src/github.com/solo-io/ext-auth-plugin-examples/plugins/RequiredHeader.so /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/plugins/*.so /compiled-auth-plugins/
+COPY --from=build /go/src/$PLUGIN_MODULE_PATH/go.mod /compiled-auth-plugins/
 
 # This is the command that will be executed when the container is run.
 # It has to copy the compiled plugin file(s) to a directory.
-CMD cp /compiled-auth-plugins/* /auth-plugins/
+CMD cp /compiled-auth-plugins/*.so /auth-plugins/

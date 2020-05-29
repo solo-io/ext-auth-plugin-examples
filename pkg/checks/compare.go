@@ -1,15 +1,15 @@
 package checks
 
 import (
-	"bufio"
-	"github.com/pkg/errors"
 	"os"
-	"strings"
+	"strconv"
 )
 
 type MismatchType int
 
 const (
+	isForked = "IS_FORKED"
+
 	Ok MismatchType = iota
 	Require
 	PluginMissingReplace
@@ -34,17 +34,7 @@ type DependencyInfoPair struct {
 	Gloo         DependencyInfo `json:"glooDependencies"`
 }
 
-func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]DependencyInfoPair, error) {
-
-	pluginDependencies, err := parseDependenciesFile(pluginsDepsFilePath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
-	}
-	glooDependencies, err := parseDependenciesFile(glooDepsFilePath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse  Gloo Enterprise go.mod file")
-	}
-
+func CompareDependencies(pluginDependencies, glooDependencies map[string]DependencyInfo) []DependencyInfoPair {
 	var nonMatchingDeps []DependencyInfoPair
 	for name, depInfo := range pluginDependencies {
 
@@ -60,8 +50,7 @@ func CompareDependencies(pluginsDepsFilePath, glooDepsFilePath string) ([]Depend
 			}
 		}
 	}
-
-	return nonMatchingDeps, nil
+	return nonMatchingDeps
 }
 
 func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
@@ -76,6 +65,10 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	case glooDep.Replacement == true && pluginDep.Replacement == false:
 		return false, PluginMissingReplace, "Please add a [replace] clause matching the Gloo one"
 	case glooDep.Replacement == false && pluginDep.Replacement == true:
+		// by using this hack, we are able to support forked repos
+		if isSet, _ := strconv.ParseBool(os.Getenv(isForked)); isSet {
+			return true, Ok, ""
+		}
 		return false, PluginExtraReplace, "Please remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause"
 	case glooDep.Replacement && pluginDep.Replacement:
 		if glooDep.ReplacementName == pluginDep.ReplacementName && glooDep.ReplacementVersion == pluginDep.ReplacementVersion {
@@ -86,64 +79,4 @@ func matches(glooDep, pluginDep DependencyInfo) (bool, MismatchType, string) {
 	}
 
 	return false, Ko, "internal error"
-}
-
-func parseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
-	if err := checkFile(filePath); err != nil {
-		return nil, err
-	}
-
-	depFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	//noinspection GoUnhandledErrorResult
-	defer depFile.Close()
-
-	dependencies := map[string]DependencyInfo{}
-
-	scanner := bufio.NewScanner(depFile)
-	skippedFirstLine := false
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		depInfo := strings.Fields(line)
-
-		// First line is the name of the module the `go list -m all` command was ran for
-		if !skippedFirstLine && len(depInfo) == 1 {
-			skippedFirstLine = true
-			continue
-		}
-
-		switch len(depInfo) {
-		case 2:
-			dependencies[depInfo[0]] = DependencyInfo{
-				Name:    depInfo[0],
-				Version: depInfo[1],
-			}
-		case 5:
-			dependencies[depInfo[0]] = DependencyInfo{
-				Name:               depInfo[0],
-				Version:            depInfo[1],
-				Replacement:        true,
-				ReplacementName:    depInfo[3],
-				ReplacementVersion: depInfo[4],
-			}
-		default:
-			return nil, errors.Errorf("malformed dependency: [%s]. "+
-				"Expected format 'NAME VERSION' or 'NAME VERSION => REPLACE_NAME REPLACE_VERSION'", line)
-		}
-	}
-	return dependencies, scanner.Err()
-}
-
-func checkFile(filename string) error {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return errors.New(filename + " file not found")
-	}
-	if info.IsDir() {
-		return errors.New(filename + " is a directory")
-	}
-	return nil
 }

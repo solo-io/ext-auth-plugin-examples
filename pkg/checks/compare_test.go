@@ -1,34 +1,87 @@
 package checks_test
 
 import (
+	"bufio"
+	"os"
+	"path/filepath"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/pkg/errors"
 	"github.com/solo-io/ext-auth-plugin-examples/pkg/checks"
-	"path/filepath"
 )
 
 const (
-	testFileDir       = "test"
 	pluginModFileName = "plugin.txt"
 	glooModFileName   = "gloo.txt"
 )
+
+func parseDependenciesTestFile(filePath string) (map[string]checks.DependencyInfo, error) {
+	depFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	//noinspection GoUnhandledErrorResult
+	defer depFile.Close()
+
+	dependencies := map[string]checks.DependencyInfo{}
+
+	scanner := bufio.NewScanner(depFile)
+	skippedFirstLine := false
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		depInfo := strings.Fields(line)
+
+		// First line is the name of the module the `go list -m all` command was ran for
+		if !skippedFirstLine && len(depInfo) == 1 {
+			skippedFirstLine = true
+			continue
+		}
+
+		switch len(depInfo) {
+		case 2:
+			dependencies[depInfo[0]] = checks.DependencyInfo{
+				Name:    depInfo[0],
+				Version: depInfo[1],
+			}
+		case 5:
+			dependencies[depInfo[0]] = checks.DependencyInfo{
+				Name:               depInfo[0],
+				Version:            depInfo[1],
+				Replacement:        true,
+				ReplacementName:    depInfo[3],
+				ReplacementVersion: depInfo[4],
+			}
+		default:
+			return nil, errors.Errorf("malformed dependency: [%s]. "+
+				"Expected format 'NAME VERSION' or 'NAME VERSION => REPLACE_NAME REPLACE_VERSION'", line)
+		}
+	}
+	return dependencies, scanner.Err()
+}
 
 var _ = Describe("Dependency verification script", func() {
 
 	DescribeTable("can detect incompatible dependency requirements",
 		func(scenarioDir string, expectError bool, expectedMismatchedDeps []checks.DependencyInfoPair) {
-
-			plugin := filepath.Join(testFileDir, scenarioDir, pluginModFileName)
-			gloo := filepath.Join(testFileDir, scenarioDir, glooModFileName)
-
-			mismatchedDeps, err := checks.CompareDependencies(plugin, gloo)
+			var (
+				plugin, gloo map[string]checks.DependencyInfo
+				err          error
+			)
+			plugin, err = parseDependenciesTestFile(filepath.Join(testFileDir, scenarioDir, pluginModFileName))
+			Expect(err).NotTo(HaveOccurred())
+			gloo, err = parseDependenciesTestFile(filepath.Join(testFileDir, scenarioDir, glooModFileName))
 			if expectError {
 				Expect(err).To(HaveOccurred())
 			} else {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(mismatchedDeps).To(BeEquivalentTo(expectedMismatchedDeps))
 			}
+
+			mismatchedDeps := checks.CompareDependencies(plugin, gloo)
+			Expect(mismatchedDeps).To(BeEquivalentTo(expectedMismatchedDeps))
 		},
 		Entry("succeeds if deps are compatible", "success", false, nil),
 		Entry("fails if a file is malformed", "malformed", true, nil),
