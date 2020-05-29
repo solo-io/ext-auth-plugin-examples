@@ -13,10 +13,9 @@ FROM build-env as build
 ARG GLOOE_VERSION
 ARG STORAGE_HOSTNAME
 ARG PLUGIN_MODULE_PATH
-ARG GO_MODULES
 
 ENV GONOSUMDB=*
-ENV GO_MODULES=$GO_MODULES
+ENV GLOOE_VERSION=$GLOOE_VERSION
 
 # We don't have the same check as on GC_FLAGS as empty values are allowed there
 RUN if [ ! $GLOOE_VERSION ]; then echo "Required GLOOE_VERSION build argument not set" && exit 1; fi

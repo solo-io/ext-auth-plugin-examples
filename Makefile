@@ -25,9 +25,6 @@ RUN_IMAGE ?= alpine:3.11
 # Set this variable to the hostname of your custom (air gapped) storage server
 STORAGE_HOSTNAME ?= storage.googleapis.com
 
-# If the plugin should be built with go modules (must match Gloo Enterprise build mode)
-GO_MODULES ?= true
-
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
@@ -44,7 +41,6 @@ build: $(GLOOE_DIR)/build_env
 		--build-arg GLOOE_VERSION=$(GLOOE_VERSION) \
 		--build-arg STORAGE_HOSTNAME=$(STORAGE_HOSTNAME) \
 		--build-arg PLUGIN_MODULE_PATH=$(PLUGIN_MODULE_PATH) \
-		--build-arg GO_MODULES=$(GO_MODULES) \
 		-t $(PLUGIN_IMAGE) .
 
 #----------------------------------------------------------------------------------
@@ -103,7 +99,7 @@ compile-plugin: $(GLOOE_DIR)/build_env
 	#   causes a panic (see here: https://github.com/golang/go/issues/24137). By flattening the dependencies this way we
 	#   prevent these sorts of problems.
 	# else just build with go modules
-	if [ "${GO_MODULES}" = "true" ]; then \
+	if go run scripts/determine_gloo_build_mode/main.go "v${GLOOE_VERSION}" | grep -q gomod; then \
 		echo "building plugin with go modules enabled"; \
 		GO111MODULE=on CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -buildmode=plugin -gcflags=$(call get_glooe_var,GC_FLAGS) -o plugins/$(PLUGIN_BUILD_NAME) plugins/$(PLUGIN_NAME)/plugin.go; \
 	else \
