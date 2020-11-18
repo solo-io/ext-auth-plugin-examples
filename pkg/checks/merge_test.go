@@ -94,7 +94,7 @@ var _ = Describe("MergeModuleFiles script", func() {
 			plugin := filepath.Join(testFileDir, scenarioDir, pluginModuleFileName)
 			gloo := filepath.Join(testFileDir, scenarioDir, glooDependenciesFileName)
 
-			moduleInfo, _, err := checks.MergeModuleFiles(plugin, gloo)
+			moduleInfo, err := checks.MergeModuleFiles(plugin, gloo)
 			if expectError {
 				Expect(err).To(HaveOccurred())
 			} else {

@@ -30,23 +30,18 @@ type ModuleInfo struct {
 	Replace map[string]string
 }
 
-func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, []DependencyInfoPair, error) {
+func MergeModuleFiles(moduleFilePath, glooDepsFilePath string) (*ModuleInfo, error) {
 	pluginModule, err := ParseModuleFile(moduleFilePath)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
+		return nil, errors.Wrapf(err, "failed to parse plugin go.mod file")
 	}
 	gloonDeps, err := ParseDependenciesFile(glooDepsFilePath)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to parse Gloo Enterprise go.mod file")
+		return nil, errors.Wrapf(err, "failed to parse Gloo Enterprise go.mod file")
 	}
 
 	merged := mergeModules(pluginModule, gloonDeps)
-	//pluginDeps, err := toDependencyInfo(merged)
-
-	//nonMatchingDeps := CompareDependencies(pluginDeps, gloonDeps)
-
-	return merged, nil, nil
-	//return merged, nonMatchingDeps, err
+	return merged, nil
 }
 
 func mergeModules(pluginModule *ModuleInfo, glooDependencies map[string]DependencyInfo) *ModuleInfo {
@@ -55,34 +50,6 @@ func mergeModules(pluginModule *ModuleInfo, glooDependencies map[string]Dependen
 		Require: copyMap(pluginModule.Require),
 		Replace: copyMap(pluginModule.Replace),
 	}
-
-	//for name := range pluginModule.Require {
-	//	// pin dependency to the same version as the Gloo one using a [require] clause
-	//	if glooEquivalent, ok := glooDependencies[name]; ok {
-	//		merged.Require[name] = glooEquivalent.Version
-	//		continue
-	//	}
-	//	// add [replace] clause matching the Gloo one
-	//	if glooEquivalent, ok := glooDependencies[name]; ok {
-	//		merged.Replace[name] = glooEquivalent.ReplacementVersion
-	//		continue
-	//	}
-	//}
-	//
-	//for name, replace := range pluginModule.Replace {
-	//	// remove the [replace] clause and pin your dependency to the same version as the Gloo one using a [require] clause
-	//	if glooEquivalent, ok := glooDependencies[name]; ok {
-	//		merged.Require[name] = glooEquivalent.Version
-	//		// gloo require entries are not allowed to be replaced
-	//		delete(merged.Replace, name)
-	//		continue
-	//	}
-	//	// update [replace] clause matching the Gloo one if version is specified
-	//	if glooEquivalent, ok := glooDependencies[name]; ok && len(strings.Fields(replace)) == 5 {
-	//		merged.Replace[name] = glooEquivalent.ReplacementVersion
-	//		continue
-	//	}
-	//}
 
 	for name, di := range glooDependencies {
 		version := di.Version
@@ -158,53 +125,6 @@ func ParseDependenciesFile(filePath string) (map[string]DependencyInfo, error) {
 	return dependencies, scanner.Err()
 }
 
-//func ParseDependenciesFile(filePath string) (*ModuleInfo, error) {
-//	if err := checkFile(filePath); err != nil {
-//		return nil, err
-//	}
-//
-//	depFile, err := os.Open(filePath)
-//	if err != nil {
-//		return nil, err
-//	}
-//	//noinspection GoUnhandledErrorResult
-//	defer depFile.Close()
-//
-//	module := &ModuleInfo{}
-//
-//	scanner := bufio.NewScanner(depFile)
-//	skippedFirstLine := false
-//	for scanner.Scan() {
-//		line := scanner.Text()
-//
-//		depInfo := strings.Fields(line)
-//
-//		// First line is the name of the module the `go list -m all` command was ran for
-//		if !skippedFirstLine && len(depInfo) == 1 {
-//			module.Name = depInfo[0]
-//			skippedFirstLine = true
-//			continue
-//		}
-//
-//		switch len(depInfo) {
-//		case 2:
-//			if module.Require == nil {
-//				module.Require = make(map[string]string)
-//			}
-//			module.Require[depInfo[0]] = strings.TrimSpace(line)
-//		case 5:
-//			if module.Replace == nil {
-//				module.Replace = make(map[string]string)
-//			}
-//			module.Replace[depInfo[0]] = strings.TrimSpace(line)
-//		default:
-//			return nil, errors.Errorf("malformed dependency: [%s]. "+
-//				"Expected format 'NAME VERSION' or 'NAME VERSION => REPLACE_NAME REPLACE_VERSION'", line)
-//		}
-//	}
-//	return module, scanner.Err()
-//}
-
 func ParseModuleFile(filePath string) (*ModuleInfo, error) {
 	if err := checkFile(filePath); err != nil {
 		return nil, err
@@ -267,56 +187,6 @@ func ParseModuleFile(filePath string) (*ModuleInfo, error) {
 
 	}
 	return module, scanner.Err()
-}
-
-func toDependencyInfo(module *ModuleInfo) (map[string]DependencyInfo, error) {
-	dis := map[string]DependencyInfo{}
-	//always add replacements
-	for name, replace := range module.Replace {
-		depInfo := strings.Fields(replace)
-		switch len(depInfo) {
-		case 4:
-			dis[name] = DependencyInfo{
-				Name:               depInfo[0],
-				Version:            depInfo[1],
-				Replacement:        true,
-				ReplacementName:    depInfo[2],
-				ReplacementVersion: depInfo[3],
-			}
-		case 5:
-			dis[name] = DependencyInfo{
-				Name:               depInfo[0],
-				Version:            depInfo[1],
-				Replacement:        true,
-				ReplacementName:    depInfo[3],
-				ReplacementVersion: depInfo[4],
-			}
-		default:
-			return nil, errors.Errorf("malformed replace dependency: [%s]. "+
-				"Expected format 'NAME VERSION => REPLACE_NAME REPLACE_VERSION'", replace)
-		}
-	}
-
-	//only add requires if key does not exists
-	for name, require := range module.Require {
-		if _, present := dis[name]; present {
-			continue
-		}
-
-		depInfo := strings.Fields(require)
-		switch len(depInfo) {
-		case 2, 3:
-			dis[name] = DependencyInfo{
-				Name:    depInfo[0],
-				Version: depInfo[1],
-			}
-		default:
-			return nil, errors.Errorf("malformed require dependency: [%s]. "+
-				"Expected format 'NAME VERSION'", require)
-		}
-	}
-
-	return dis, nil
 }
 
 func copyMap(m map[string]string) map[string]string {
