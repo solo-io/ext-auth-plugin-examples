@@ -121,7 +121,7 @@ var _ = Describe("MergeModuleFiles", func() {
 				Expect(moduleInfo).To(BeEquivalentTo(expectedModuleInfo))
 			}
 		},
-		FEntry("Al Gloo Edge dependencies get added to the merged go.mod replace", "success", false,
+		Entry("All Gloo Edge dependencies get added to the merged go.mod replace", "success", false,
 			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
 				Require: map[string]string{
 					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
@@ -133,40 +133,17 @@ var _ = Describe("MergeModuleFiles", func() {
 				},
 			},
 		),
-		Entry("Gloo replacement is added for the require dep with matching version", "mismatch_replace_1", false,
+		Entry("Gloo replacement is added for cross-repo replace statements from Gloo dependencies", "mismatch_replace_1", false,
 			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
-				Replace: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3 => github.com/solo-io/bar v1.2.4",
-				},
 				Require: map[string]string{
 					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
 					"github.com/solo-io/bar": "github.com/solo-io/bar v1.23.3",
-				}},
-		),
-		Entry("Gloo require name and version takes precedence if the plugin replaces a require dep", "mismatch_replace_2", false,
-			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
-				Require: map[string]string{
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.20",
-				}},
-		),
-		Entry("Gloo replacement takes precedence if both the plugin and Gloo replace a dep and the replacements version do not match", "mismatch_replace_3", false,
-			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
-				Replace: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3 => github.com/solo-io/bar v1.2.5",
 				},
-				Require: map[string]string{
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-				}},
-		),
-		Entry("Plugin replacement takes precedence if both the plugin replace a dep with no version", "mismatch_replace_4", false,
-			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
 				Replace: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar => github.com/solo-io/baz v1.20.4",
+					"github.com/solo-io/foo": "github.com/solo-io/foo => github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
+					"github.com/solo-io/bar": "github.com/solo-io/bar => github.com/solo-io/quz v1.2.4",
 				},
-				Require: map[string]string{
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-				}},
+			},
 		),
 	)
 })
