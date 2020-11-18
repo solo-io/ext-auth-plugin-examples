@@ -8,7 +8,7 @@ format:
 #----------------------------------------------------------------------------------
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.3.8
+GLOOE_VERSION ?= 1.5.10
 
 # Set this variable to the name of your build plugin
 PLUGIN_BUILD_NAME ?= RequiredHeader.so
@@ -28,7 +28,7 @@ STORAGE_HOSTNAME ?= storage.googleapis.com
 GLOOE_DIR := _glooe
 _ := $(shell mkdir -p $(GLOOE_DIR))
 
-PLUGIN_MODULE_PATH := $(shell grep module go.mod | cut -d ' ' -f 2-)
+PLUGIN_MODULE_PATH := $(shell grep module go.mod | head -n 1 | cut -d ' ' -f 2-)
 
 #----------------------------------------------------------------------------------
 # Build an docker image which contains the plugin framework and plugin implementation
