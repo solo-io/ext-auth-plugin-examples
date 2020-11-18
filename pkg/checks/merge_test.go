@@ -105,7 +105,7 @@ var _ = Describe("ParseDependencies", func() {
 		Entry("fails if a file is malformed", "malformed", true, nil),
 	)
 })
-var _ = PDescribe("MergeModuleFiles", func() {
+var _ = Describe("MergeModuleFiles", func() {
 
 	DescribeTable("After merging plugin and gloo dependencies files",
 		func(scenarioDir string, expectError bool, expectedModuleInfo *checks.ModuleInfo) {
@@ -121,15 +121,15 @@ var _ = PDescribe("MergeModuleFiles", func() {
 				Expect(moduleInfo).To(BeEquivalentTo(expectedModuleInfo))
 			}
 		},
-		Entry("Gloo require version takes precedence if both the plugin and Gloo require a dep and the version do not match", "success", false,
+		FEntry("Al Gloo Edge dependencies get added to the merged go.mod replace", "success", false,
 			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
 				Require: map[string]string{
 					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
 					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
 				},
 				Replace: map[string]string{
-					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
+					"github.com/solo-io/bar": "github.com/solo-io/bar => github.com/solo-io/bar v1.2.3",
+					"github.com/solo-io/foo": "github.com/solo-io/foo => github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
 				},
 			},
 		),
