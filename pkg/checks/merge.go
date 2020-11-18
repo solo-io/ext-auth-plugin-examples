@@ -26,12 +26,6 @@ type DependencyInfo struct {
 	ReplacementVersion string `json:"replacementVersion,omitempty"`
 }
 
-type DependencyInfoPair struct {
-	Message string         `json:"message"`
-	Plugin  DependencyInfo `json:"pluginDependencies"`
-	Gloo    DependencyInfo `json:"glooDependencies"`
-}
-
 type Section string
 
 func (s Section) String() string {
