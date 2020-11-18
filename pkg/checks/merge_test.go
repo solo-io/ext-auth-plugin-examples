@@ -17,7 +17,6 @@ const (
 
 var (
 	pluginModuleName = "github.com/solo-io/ext-auth-plugin-examples"
-	glooModuleName   = "github.com/solo-io/solo-projects"
 	moduleVersion    = "1.14"
 )
 
@@ -52,7 +51,7 @@ var _ = Describe("parseModule script", func() {
 		Entry("fails if a file is malformed", "malformed", true, nil),
 	)
 })
-var _ = Describe("parseDependencies script", func() {
+var _ = Describe("ParseDependencies", func() {
 
 	DescribeTable("can parse dependencies file",
 		func(scenarioDir string, expectError bool, expectedDependencyInfo map[string]checks.DependencyInfo) {
@@ -67,7 +66,7 @@ var _ = Describe("parseDependencies script", func() {
 				Expect(dependencyInfo).To(BeEquivalentTo(expectedDependencyInfo))
 			}
 		},
-		FEntry("succeeds if file has no replacements", "success", false,
+		Entry("succeeds if file has no replacements", "success", false,
 			map[string]checks.DependencyInfo{
 				"github.com/solo-io/bar": {
 					Name:               "github.com/solo-io/bar",
@@ -86,18 +85,27 @@ var _ = Describe("parseDependencies script", func() {
 			},
 		),
 		Entry("succeeds if file has replacements", "success_replacements", false,
-			&checks.ModuleInfo{Name: glooModuleName,
-				Replace: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3 => github.com/solo-io/bar v1.2.4",
+			map[string]checks.DependencyInfo{
+				"github.com/solo-io/bar": {
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        true,
+					ReplacementName:    "github.com/solo-io/bar",
+					ReplacementVersion: "v1.2.4",
 				},
-				Require: map[string]string{
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-				}},
+				"github.com/solo-io/foo": {
+					Name: "github.com/solo-io/foo",
+					Version: "v0.0.0-20180207000608-0eeff89b0690",
+					Replacement: false,
+					ReplacementName: "",
+					ReplacementVersion: "",
+				},
+			},
 		),
 		Entry("fails if a file is malformed", "malformed", true, nil),
 	)
 })
-var _ = Describe("MergeModuleFiles script", func() {
+var _ = PDescribe("MergeModuleFiles", func() {
 
 	DescribeTable("After merging plugin and gloo dependencies files",
 		func(scenarioDir string, expectError bool, expectedModuleInfo *checks.ModuleInfo) {
@@ -118,7 +126,12 @@ var _ = Describe("MergeModuleFiles script", func() {
 				Require: map[string]string{
 					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
 					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-				}},
+				},
+				Replace: map[string]string{
+					"github.com/solo-io/baz": "github.com/solo-io/baz v1.2.5",
+					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
+				},
+			},
 		),
 		Entry("Gloo replacement is added for the require dep with matching version", "mismatch_replace_1", false,
 			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
