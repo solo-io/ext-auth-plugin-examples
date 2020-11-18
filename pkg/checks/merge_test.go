@@ -36,7 +36,7 @@ var _ = Describe("parseModule script", func() {
 				Expect(moduleInfo).To(BeEquivalentTo(expectedModuleInfo))
 			}
 		},
-		Entry("succeeds if file is welformed", "success_parse", false,
+		Entry("succeeds if file is well-formed", "success_parse", false,
 			&checks.ModuleInfo{Name: pluginModuleName, Version: moduleVersion,
 				Replace: map[string]string{
 					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3 => github.com/solo-io/bar v1.2.4",
@@ -55,24 +55,35 @@ var _ = Describe("parseModule script", func() {
 var _ = Describe("parseDependencies script", func() {
 
 	DescribeTable("can parse dependencies file",
-		func(scenarioDir string, expectError bool, expectedModuleInfo *checks.ModuleInfo) {
+		func(scenarioDir string, expectError bool, expectedDependencyInfo map[string]checks.DependencyInfo) {
 
 			gloo := filepath.Join(testFileDir, scenarioDir, glooDependenciesFileName)
 
-			moduleInfo, err := checks.ParseDependenciesFile(gloo)
+			dependencyInfo, err := checks.ParseDependenciesFile(gloo)
 			if expectError {
 				Expect(err).To(HaveOccurred())
 			} else {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(moduleInfo).To(BeEquivalentTo(expectedModuleInfo))
+				Expect(dependencyInfo).To(BeEquivalentTo(expectedDependencyInfo))
 			}
 		},
-		Entry("succeeds if file has no replacements", "success", false,
-			&checks.ModuleInfo{Name: glooModuleName,
-				Require: map[string]string{
-					"github.com/solo-io/bar": "github.com/solo-io/bar v1.2.3",
-					"github.com/solo-io/foo": "github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690",
-				}},
+		FEntry("succeeds if file has no replacements", "success", false,
+			map[string]checks.DependencyInfo{
+				"github.com/solo-io/bar": {
+					Name:               "github.com/solo-io/bar",
+					Version:            "v1.2.3",
+					Replacement:        false,
+					ReplacementName:    "",
+					ReplacementVersion: "",
+				},
+				"github.com/solo-io/foo": {
+					Name: "github.com/solo-io/foo",
+					Version: "v0.0.0-20180207000608-0eeff89b0690",
+					Replacement: false,
+					ReplacementName: "",
+					ReplacementVersion: "",
+				},
+			},
 		),
 		Entry("succeeds if file has replacements", "success_replacements", false,
 			&checks.ModuleInfo{Name: glooModuleName,
