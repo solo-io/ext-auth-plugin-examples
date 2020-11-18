@@ -17,8 +17,8 @@ func main() {
 	pluginsModuleFilePath := os.Args[1]
 	glooDependenciesFilePath := os.Args[2]
 	var (
-		mergedModule    *checks.ModuleInfo
-		err             error
+		mergedModule *checks.ModuleInfo
+		err          error
 	)
 	if mergedModule, err = checks.MergeModuleFiles(pluginsModuleFilePath, glooDependenciesFilePath); err != nil {
 		fmt.Printf("Failed to resolve dependencies: %s\n", err.Error())

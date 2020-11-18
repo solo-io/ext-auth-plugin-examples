@@ -17,6 +17,21 @@ const (
 	ReplaceSection = "replace"
 )
 
+type DependencyInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+
+	Replacement        bool   `json:"replacement"`
+	ReplacementName    string `json:"replacementName,omitempty"`
+	ReplacementVersion string `json:"replacementVersion,omitempty"`
+}
+
+type DependencyInfoPair struct {
+	Message string         `json:"message"`
+	Plugin  DependencyInfo `json:"pluginDependencies"`
+	Gloo    DependencyInfo `json:"glooDependencies"`
+}
+
 type Section string
 
 func (s Section) String() string {
@@ -62,7 +77,7 @@ func mergeModules(pluginModule *ModuleInfo, glooDependencies map[string]Dependen
 			replaceName = di.ReplacementName
 		}
 
-		merged.Replace[name] =  di.Name + " => " + replaceName + " " + version
+		merged.Replace[name] = di.Name + " => " + replaceName + " " + version
 	}
 
 	//set empty maps to nil
