@@ -1,0 +1,7 @@
+changelog:
+  - type: BREAKING_CHANGE
+    description: >
+      Fix over-complicated and broken resolve-deps script; now the Gloo Edge Enterprise dependencies will be
+      added in their entirety as replace statements to the plugin's go.mod in the resolve-deps script to ensure
+      that the correct dependencies are used.
+    issueLink: https://github.com/solo-io/gloo/issues/3748

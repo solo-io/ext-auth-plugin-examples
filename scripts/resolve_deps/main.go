@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -18,35 +17,20 @@ func main() {
 	pluginsModuleFilePath := os.Args[1]
 	glooDependenciesFilePath := os.Args[2]
 	var (
-		nonMatchingDeps []checks.DependencyInfoPair
-		mergedModule    *checks.ModuleInfo
-		err             error
+		mergedModule *checks.ModuleInfo
+		err          error
 	)
-	if mergedModule, nonMatchingDeps, err = checks.MergeModuleFiles(pluginsModuleFilePath, glooDependenciesFilePath); err != nil {
+	if mergedModule, err = checks.MergeModuleFiles(pluginsModuleFilePath, glooDependenciesFilePath); err != nil {
 		fmt.Printf("Failed to resolve dependencies: %s\n", err.Error())
 		os.Exit(1)
 	}
 
-	if len(nonMatchingDeps) == 0 {
-		fmt.Printf("All shared dependencies match, writing new merged '%s'\n", pluginsModuleFilePath)
+	fmt.Printf("All shared dependencies match, writing new merged '%s'\n", pluginsModuleFilePath)
 
-		if err = createPluginModuleFile(pluginsModuleFilePath, mergedModule); err != nil {
-			fmt.Printf("failed to write new merged '%s' file: %s\n", pluginsModuleFilePath, err.Error())
-			os.Exit(1)
-		}
-		os.Exit(0)
-	}
-	fmt.Println("Plugin and Gloo Enterprise dependencies do not match after merge")
-
-	// 1. Write the report to stdout
-	reportBytes, err := json.MarshalIndent(nonMatchingDeps, "", "  ")
-	if err != nil {
-		fmt.Printf("Failed to marshall error report to JSON: %s/n", err.Error())
+	if err = createPluginModuleFile(pluginsModuleFilePath, mergedModule); err != nil {
+		fmt.Printf("failed to write new merged '%s' file: %s\n", pluginsModuleFilePath, err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(reportBytes))
-
-	os.Exit(1)
 }
 
 func createPluginModuleFile(moduleFileName string, module *checks.ModuleInfo) error {
