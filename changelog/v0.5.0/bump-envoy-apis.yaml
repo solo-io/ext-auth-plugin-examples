@@ -1,0 +1,6 @@
+changelog:
+- type: BREAKING_CHANGE
+  description: Update ext-auth plugin interface to envoy V3 APIs.
+  issueLink: https://github.com/solo-io/gloo/issues/2815
+  resolvesIssue: false
+

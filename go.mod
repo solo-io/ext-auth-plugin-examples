@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/pkg/errors v0.9.1
-	github.com/solo-io/ext-auth-plugins v0.1.2
+	github.com/solo-io/ext-auth-plugins v0.1.3-0.20201123214154-4ec4d5baf72a
 	github.com/solo-io/go-utils v0.14.2
 	go.uber.org/zap v1.13.0
 	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d // indirect
@@ -529,7 +529,7 @@ replace (
 	github.com/solo-io/dev-portal => github.com/solo-io/dev-portal v0.1.11
 	github.com/solo-io/envoy-operator => github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples => github.com/solo-io/ext-auth-plugin-examples v0.2.1
-	github.com/solo-io/ext-auth-plugins => github.com/solo-io/ext-auth-plugins v0.1.2
+	github.com/solo-io/ext-auth-plugins => ../ext-auth-plugins
 	github.com/solo-io/ext-auth-service => github.com/solo-io/ext-auth-service v0.6.20
 	github.com/solo-io/external-apis => github.com/solo-io/external-apis v0.0.6
 	github.com/solo-io/gloo => github.com/solo-io/gloo v1.5.10
