@@ -529,7 +529,7 @@ replace (
 	github.com/solo-io/dev-portal => github.com/solo-io/dev-portal v0.1.11
 	github.com/solo-io/envoy-operator => github.com/solo-io/envoy-operator v0.1.4
 	github.com/solo-io/ext-auth-plugin-examples => github.com/solo-io/ext-auth-plugin-examples v0.2.1
-	github.com/solo-io/ext-auth-plugins => github.com/solo-io/ext-auth-plugins v0.1.2
+	github.com/solo-io/ext-auth-plugins => github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service => github.com/solo-io/ext-auth-service v0.6.20
 	github.com/solo-io/external-apis => github.com/solo-io/external-apis v0.0.6
 	github.com/solo-io/gloo => github.com/solo-io/gloo v1.5.10
