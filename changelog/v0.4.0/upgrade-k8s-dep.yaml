@@ -1,0 +1,4 @@
+changelog:
+  - type: UPGRADE
+    description: Upgrade k8s to v0.18.6 to stay in sync with other repos.
+    issueLink: https://github.com/solo-io/gloo/issues/3579
