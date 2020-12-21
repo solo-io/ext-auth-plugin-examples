@@ -418,6 +418,7 @@ github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9
 github.com/soheilhy/cmux v0.1.4/go.mod h1:IM3LyeVVIOuxMH7sFAkER9+bJ4dT7Ms6E4xg4kGIyLM=
 github.com/solo-io/ext-auth-plugins v0.1.2 h1:6Ia7KG+titlg6R/uF1HlYFwZU0IHh3rg3Kpb0d5pP/c=
 github.com/solo-io/ext-auth-plugins v0.1.2/go.mod h1:F+R46KCVWRmaINQYGQqVeFds4tsgN8AMseGq6W/TlnU=
+github.com/solo-io/ext-auth-plugins v0.2.0/go.mod h1:7JagZLUdu1ua0V6It70ndcfZShr3S3O8pHbvjaGWkF0=
 github.com/solo-io/go-utils v0.16.2 h1:h5UOA2BQ32R4prHL7FV19vsrHZvICnhsqgY0/ok9et0=
 github.com/solo-io/go-utils v0.16.2/go.mod h1:uIPAgEuwiEwpBaFv1uI7j4CUVaFYR5iHmTYuIUlLY2Q=
 github.com/solo-io/go-utils v0.16.6 h1:24bg4lC7E/hQxfb0rjOr5jjD7DRNyNgjTfGzsjiplPQ=
