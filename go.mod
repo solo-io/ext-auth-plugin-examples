@@ -1,6 +1,6 @@
 module github.com/solo-io/ext-auth-plugin-examples
 
-go 1.14
+go 1.16
 
 require (
 	// Merged 'require' section of the Gloo depenencies and your go.mod file:
@@ -12,8 +12,6 @@ require (
 	github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/go-utils v0.14.2
 	go.uber.org/zap v1.13.0
-	google.golang.org/genproto v0.0.0-20200309141739-5b75447e413d // indirect
-	google.golang.org/grpc v1.28.0-pre.0.20200226185027-6cd03861bfd2 // indirect
 )
 
 replace (
@@ -617,7 +615,7 @@ replace (
 	github.com/solo-io/ext-auth-plugins => github.com/solo-io/ext-auth-plugins v0.2.0
 	github.com/solo-io/ext-auth-service => github.com/solo-io/ext-auth-service v0.7.5
 	github.com/solo-io/external-apis => github.com/solo-io/external-apis v0.0.6
-	github.com/solo-io/gloo => github.com/solo-io/gloo v1.6.0-beta18
+	github.com/solo-io/gloo => github.com/solo-io/gloo v1.7.0
 	github.com/solo-io/go-list-licenses => github.com/solo-io/go-list-licenses v0.0.0-20191023220251-171e4740d00f
 	github.com/solo-io/go-utils => github.com/solo-io/go-utils v0.20.0
 	github.com/solo-io/k8s-utils => github.com/solo-io/k8s-utils v0.0.2

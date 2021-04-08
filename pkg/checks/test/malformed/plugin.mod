@@ -1,6 +1,6 @@
 module github.com/solo-io/ext-auth-plugin-examples
 
-go 1.14
+go 1.16
 
 foo (
 	github.com/solo-io/foo v0.0.0-20180207000608-0eeff89b0690
