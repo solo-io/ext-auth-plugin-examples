@@ -17,7 +17,7 @@ const (
 
 var (
 	pluginModuleName = "github.com/solo-io/ext-auth-plugin-examples"
-	moduleVersion    = "1.14"
+	moduleVersion    = "1.16"
 )
 
 var _ = Describe("parseModule script", func() {
