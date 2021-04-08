@@ -1,11 +1,9 @@
 changelog:
   - type: DEPENDENCY_BUMP
-    description: Updated the go version from 1.14 to 1.16
     dependencyOwner: golang
     dependencyRepo: go
     dependencyTag: v1.16
   - type: DEPENDENCY_BUMP
-    description: Updated gloo to 1.7.0
     dependencyOwner: solo-io
     dependencyRepo: gloo
     dependencyTag: v1.7.0
