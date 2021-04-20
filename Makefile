@@ -8,7 +8,7 @@ format:
 #----------------------------------------------------------------------------------
 
 # Set this variable to the version of GlooE you want to target
-GLOOE_VERSION ?= 1.7.0
+GLOOE_VERSION ?= 1.7.2
 
 # Set this variable to the name of your build plugin
 PLUGIN_BUILD_NAME ?= RequiredHeader.so
@@ -70,6 +70,7 @@ get-plugin-dependencies: go.mod go.sum
 #----------------------------------------------------------------------------------
 .PHONY: resolve-deps
 resolve-deps: go.mod $(GLOOE_DIR)/dependencies
+	go mod tidy
 	go run scripts/resolve_deps/main.go go.mod $(GLOOE_DIR)/dependencies
 
 #----------------------------------------------------------------------------------
