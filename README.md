@@ -108,7 +108,7 @@ docker push username/dockerrepo:v1
 ```
 
 You can now use this image to load your plugin into the Gloo Enterprise external auth server.
-See [this section](https://docs.solo.io/gloo/latest/guides/security/auth/plugin_auth/#installation) of our docs 
+See [this section](https://docs.solo.io/gloo/latest/guides/security/auth/extauth/plugin_auth/#installation) of our docs 
 for an example of how to do this.
 
 #### Configurable options
