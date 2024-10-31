@@ -1,3 +1,8 @@
+> [!WARNING]
+> ExtAuthPlugin has been deprecated in favor of ExtAuth Passthrough. Please refer to the [Gloo Gateway docs](https://docs.solo.io/gloo-edge/latest/guides/security/auth/extauth/passthrough_auth/) for more information.
+
+---
+
 <h1 align="center">
     <img src="https://github.com/solo-io/ext-auth-plugin-examples/raw/master/img/gloo-plugin.png" alt="Gloo Plugins" width="440" height="309">
   <br>
