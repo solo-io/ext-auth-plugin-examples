@@ -1,0 +1,5 @@
+changelog:
+- type: FIX
+  description: Add a warning to the README informing users that ExtAuthPlugin is deprecated and direct users to the safer alternative, [ExtAuth Passthrough](https://docs.solo.io/gloo-edge/latest/guides/security/auth/extauth/passthrough_auth/).
+  issueLink: https://github.com/solo-io/solo-projects/issues/6961
+  resolvesIssue: false
